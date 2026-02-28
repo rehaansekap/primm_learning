@@ -1,0 +1,81 @@
+.page-container {
+    display: flex;
+    min-height: 100vh;
+    justify-content: center;
+    align-items: center;
+    background: #f0f0f0;
+    padding: 30px;
+}
+
+.card {
+    width: 850px;
+    display: flex;
+    background: white;
+    border-radius: 14px;
+    overflow: hidden;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+}
+
+/* LEFT */
+.left-panel {
+    width: 45%;
+    padding: 40px 30px;
+    background: #ffffff;
+    text-align: center;
+}
+
+.welcome-title {
+    font-size: 28px;
+    font-weight: bold;
+    margin-top: 10px;
+    padding-bottom: 10px;
+}
+
+
+
+.btnlogin {
+    background: none;
+    border: 2px solid #78B9B5;
+    color: #000000;
+    padding-top: 5px;
+    width: 100px;          /* lebar tombol */
+    text-align: center;
+}
+.btnlogin:hover {
+    background: #78B9B5;          /* latar saat hover */
+    color: white;               /* teks putih saat hover */
+}
+
+.btnregis {
+    background: #78B9B5;
+    color: #000000;
+    padding-top: 5px;
+    width: 100px;          /* lebar tombol */
+    text-align: center;
+}
+.button-container {
+    display: flex;
+    justify-content: center; /* horizontal center */
+}
+/* RIGHT */
+.right-panel {
+    width: 55%;
+    padding: 40px 35px;
+    background: #f4c892;
+}
+
+.form-title {
+    text-align: center;
+    font-size: 28px;
+    font-weight: bold;
+}
+
+.desc {
+    text-align: center;
+    margin-bottom: 20px;
+    color: #333;
+}
+
+.form-content {
+    margin-top: 20px;
+}

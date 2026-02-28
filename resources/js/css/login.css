@@ -1,0 +1,33 @@
+.welcome-title {
+    font-size: 28px;
+    font-weight: bold;
+    margin-top: 5px;
+    padding-bottom: 10px;
+}
+
+.btnregister {
+    background: none;
+    border: 2px solid #ffffff;
+    color: #000000;
+    padding-top: 2px;
+    width: 100px;          /* lebar tombol */
+    text-align: center;
+}
+
+.btnregister:hover {
+    background: #ffffff;          /* latar saat hover */
+    color: black;               /* teks putih saat hover */
+}
+.btnlogin {
+    background: #78B9B5;
+    color: #000000;
+    padding-top: 5px;
+    width: 100px;         
+    text-align: center;
+}
+
+.button-container {
+    padding-top: 10px;
+    display: flex;
+    justify-content: center; 
+}
