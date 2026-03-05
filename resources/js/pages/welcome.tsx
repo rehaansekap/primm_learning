@@ -12,7 +12,7 @@ export default function Welcome(){
                     <div className="grid grid-cols-1 lg:grid-cols-2 items-center gap-10">
                     
                     <div>
-                        <div className="text-center w-full"> {/* Parent harus text-center */}
+                        <div className="text-center w-full"> 
                             <h1 
                                 className="text-6xl font-black uppercase tracking-tighter pr-2"
                                 style={{

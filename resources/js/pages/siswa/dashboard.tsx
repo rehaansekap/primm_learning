@@ -46,33 +46,33 @@ export default function DashboardSiswa({ auth, stats }: Props) {
                             <div className="absolute top-0 right-0 p-8 opacity-20">
                                 <Info size={40} />
                             </div>
-                            <h3 className="text-2xl font-black uppercase tracking-tight relative">Penting!</h3>
+                            <h3 className="text-2xl font-black uppercase tracking-tight relative">INFO PENTING!</h3>
                             <p className="text-black text-sm mt-1 relative">Alur penggunaan aplikasi:</p>
                         </div>
                         
                         <div className="p-4 space-y-3">
                             <div className="flex gap-4">
-                                {/* <div className="bg-amber-100 text-amber-600 p-2 rounded-lg h-fit"><Trophy size={20} /></div> */}
                                 <p className="text-sm text-slate-600">1. Silahkan <b>Test</b> terlebih dahulu jika belum.</p>
                             </div>
                             <div className="flex gap-4">
-                                {/* <div className="bg-blue-100 text-blue-600 p-2 rounded-lg h-fit"><UserCircle size={20} /></div> */}
                                 <p className="text-sm text-slate-600">2. Lanjutkan ke <b>Edit Profil</b> jika ingin memperbarui data diri Anda.</p>
                             </div>
                             <div className="flex gap-4">
-                                {/* <div className="bg-green-100 text-green-600 p-2 rounded-lg h-fit"><BookOpen size={20} /></div> */}
                                 <p className="text-sm text-slate-600">3. Pilih menu <b>Course</b> untuk mulai belajar .</p>
                             </div>
                             <div className="flex gap-4 border-t border-dashed">
-                                {/* <div className="bg-slate-100 text-slate-600 p-2 rounded-lg h-fit"><Monitor size={20} /></div> */}
                                 <p className="text-sm text-slate-600 font-medium">4. Cek <b>Grade</b> untuk melihat hasil belajar.</p>
                             </div>
+                            <div className="flex gap-4 border-t border-dashed">
+                                <p className="text-sm text-slate-600 font-medium">5. Jangan lupa wajib <b>Logout</b> setiap pembelajaran selesai.</p>
+                            </div>
+                            
 
                             <button 
                                 onClick={closeWelcome}
                                 className="w-full mt-4 py-3 bg-[#0F828C] hover:bg-[#0d6d74] text-white rounded-2xl font-black text-sm tracking-widest uppercase transition-all active:scale-95 flex items-center justify-center gap-2"
                             >
-                                Saya Mengerti <ChevronRight size={18} />
+                                 Mengerti <ChevronRight size={18} />
                             </button>
                         </div>
                     </div>

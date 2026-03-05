@@ -14,19 +14,15 @@ class StudentGradeController extends Controller
 {
     public function index()
     {
-        // Pastikan Facade Auth sudah di-import: use Illuminate\Support\Facades\Auth;
         $userId = Auth::id(); 
 
-        // 1. Ambil semua course
         $allCourses = \App\Models\Course::all();
 
-        // 2. Ambil semua jawaban siswa sekaligus (Eager Loading) untuk menghemat query
         $allAnswers = \App\Models\StudentAnswer::with(['question.primm'])
             ->where('user_id', $userId)
             ->get();
 
         $results = $allCourses->map(function ($course) use ($allAnswers) {
-            // Filter jawaban yang hanya milik materi (course) ini
             $jawabanMateriIni = $allAnswers->filter(function ($answer) use ($course) {
                 return $answer->question?->primm?->course_id === $course->id;
             });

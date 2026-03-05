@@ -17,9 +17,13 @@ use App\Http\Controllers\Grading\GradingController;
 use App\Http\Controllers\Siswa\GradingSiswa\StudentGradeController;
 
 Route::get('/', function () {
-    return Inertia::render('welcome', [
-        'canRegister' => Features::enabled(Features::registration()),
-    ]);
+    if (Auth::check()) {
+        return Auth::user()->role === 'guru' 
+            ? redirect('/guru/dashboard') 
+            : redirect('/siswa/dashboard');
+    }
+
+    return Inertia::render('welcome');
 })->name('home');
 
 Route::middleware(['auth', 'verified'])->group(function () {
@@ -73,6 +77,10 @@ Route::get('/petunjuk', function () {
 
 Route::get('guru/list-siswa', [UserController::class, 'index'])
     ->name('users.index');
+Route::delete('/guru/list-siswa/{user}', [UserController::class, 'destroy'])
+    ->name('siswa.destroy');
+Route::put('/guru/list-siswa/restore/{id}', [UserController::class, 'restore'])->name('siswa.restore');
+Route::delete('/guru/list-siswa/force-delete/{id}', [UserController::class, 'forceDestroy'])->name('siswa.forceDelete');
 
 Route::get('guru/test/kelolaTest', function () {
     return Inertia::render('guru/test/kelolaTest');

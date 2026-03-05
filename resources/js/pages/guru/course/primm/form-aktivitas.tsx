@@ -43,7 +43,7 @@ export default function FormAktivitas({ materi, tahap, primm }: { materi: any; t
                 ? d.questions.map((q: any) => ({ 
                     id: q.id, 
                     teks: q.pertanyaan,
-                    pembahasan: q.pembahasan || "" // Ambil data pembahasan dari DB
+                    pembahasan: q.pembahasan || "" 
                   }))
                 : [{ id: Date.now(), teks: "", pembahasan: "" }]
         }));
@@ -82,11 +82,9 @@ export default function FormAktivitas({ materi, tahap, primm }: { materi: any; t
                 }
             });
 
-            // Handle Gambar
             if (blok.gambar instanceof File) {
                 formData.append(`gambar_${index}`, blok.gambar);
             } else if (blok.preview) {
-                // Jika tidak ganti gambar, kirim path gambar lama agar tidak hilang
                 formData.append(`blok[${index}][existing_gambar]`, blok.preview.replace('/storage/', ''));
             }
         });
@@ -94,13 +92,11 @@ export default function FormAktivitas({ materi, tahap, primm }: { materi: any; t
         router.post(`/guru/course/${materi.id}/primm/${tahap}/store`, formData, {
             forceFormData: true,
             onSuccess: () => {
-                // Otomatis pindah ke halaman listPrimm setelah sukses
                 router.visit(`/guru/course/primm/list-primm/${materi.id}?judul=${encodeURIComponent(materi.judul)}`);
             }
         });
     };
 
-    // 3. Fungsi Helper (Tambah/Hapus Blok & Soal)
     const tambahBlok = () => {
         setDaftarBlok([...daftarBlok, { 
             id: Date.now(), 
@@ -133,7 +129,6 @@ export default function FormAktivitas({ materi, tahap, primm }: { materi: any; t
         setDaftarBlok(prev => prev.map((blok, i) => {
             if (i !== bIndex) return blok;
             const soalBaru = blok.daftar_soal.map((soal, j) => 
-                // Pertahankan ID soal agar Laravel tahu soal mana yang sedang diedit
                 j === sIndex ? { ...soal, teks: value } : soal
             );
             return { ...blok, daftar_soal: soalBaru };
@@ -174,7 +169,6 @@ export default function FormAktivitas({ materi, tahap, primm }: { materi: any; t
     return (
         <AppLayout breadcrumbs={[{ title: `Aktivitas ${namaTahap}`, href: '#' }]}>
             <div className="p-6 bg-gray-100 min-h-screen w-full font-sans text-gray-800">
-                {/* Notifikasi Sukses */}
                 {showSuccessMsg && (
                     <div className="max-w-3xl mx-auto mb-6">
                         <div className="bg-emerald-50 border-2 border-emerald-200 text-emerald-800 px-6 py-4 rounded-[20px] flex items-center gap-3">
@@ -184,7 +178,6 @@ export default function FormAktivitas({ materi, tahap, primm }: { materi: any; t
                     </div>
                 )}
                 
-                {/* Header */}
                 <div className="max-w-3xl mx-auto mb-8 flex justify-between items-end">
                     <div className="flex items-center gap-4">
                         <div className="bg-emerald-600 p-3 rounded-2xl shadow-lg">
@@ -200,9 +193,9 @@ export default function FormAktivitas({ materi, tahap, primm }: { materi: any; t
                 <form onSubmit={handleSubmit} className="max-w-3xl mx-auto space-y-8 mb-12">
                     {daftarBlok.map((blok, bIndex) => (
                         <div key={blok.id} className="relative bg-white border border-gray-200 rounded-[40px] shadow-sm p-8 space-y-8">
-                            
+
                             {daftarBlok.length > 1 && (
-                                <button type="button" onClick={() => hapusBlok(bIndex)} className="absolute top-6 right-8 text-gray-300 hover:text-red-500">
+                                <button type="button" onClick={() => hapusBlok(bIndex)} className="absolute top-6 right-8 text-gray-300 hover:text-red-500 transition-colors">
                                     <X className="w-6 h-6" />
                                 </button>
                             )}
@@ -211,13 +204,12 @@ export default function FormAktivitas({ materi, tahap, primm }: { materi: any; t
                                 Blok Aktivitas #{bIndex + 1}
                             </div>
 
-                            {/* 1. MEDIA SECTION */}
                             <div className="space-y-4">
                                 <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest flex items-center gap-2">
                                     <span className="bg-emerald-600 text-white w-5 h-5 rounded-lg flex items-center justify-center text-[10px]">1</span>
                                     Gambar Kode Program
                                 </label>
-                                <label className="flex flex-col items-center justify-center w-full h-64 border-2 border-dashed border-gray-100 rounded-[30px] bg-gray-50/50 cursor-pointer overflow-hidden relative group">
+                                <label className="flex flex-col items-center justify-center w-full h-64 border-2 border-dashed border-gray-100 rounded-[30px] bg-gray-50/50 cursor-pointer overflow-hidden relative group hover:border-emerald-300 transition-all">
                                     {blok.preview ? (
                                         <img src={blok.preview} className="w-full h-full object-contain p-6" alt="Preview" />
                                     ) : (
@@ -230,11 +222,10 @@ export default function FormAktivitas({ materi, tahap, primm }: { materi: any; t
                                 </label>
                             </div>
 
-                            {/* 2. QUESTION SECTION - Perbaikan loop di sini */}
                             <div className="space-y-4">
                                 <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest flex items-center gap-2">
                                     <span className="bg-emerald-600 text-white w-5 h-5 rounded-lg flex items-center justify-center text-[10px]">2</span>
-                                    Daftar Pertanyaan & Pembahasan
+                                    Pertanyaan untuk Gambar #{bIndex + 1}
                                 </label>
                                 
                                 <div className="space-y-4">
@@ -249,7 +240,7 @@ export default function FormAktivitas({ materi, tahap, primm }: { materi: any; t
                                                     value={soal.teks}
                                                     onChange={(e) => updateTeksSoal(bIndex, sIndex, e.target.value)}
                                                     className="w-full p-5 bg-white border border-gray-100 rounded-[20px] text-xs focus:ring-4 focus:ring-emerald-500/10 focus:border-emerald-500 outline-none shadow-sm"
-                                                    placeholder="Tulis pertanyaan..."
+                                                    placeholder="Tulis pertanyaan (Contoh: Apa output dari kode diatas?)"
                                                     rows={2}
                                                 />
                                                 <div className="relative">
@@ -257,7 +248,7 @@ export default function FormAktivitas({ materi, tahap, primm }: { materi: any; t
                                                         value={soal.pembahasan || ""}
                                                         onChange={(e) => updatePembahasanSoal(bIndex, sIndex, e.target.value)}
                                                         className="w-full p-5 bg-emerald-50/30 border border-emerald-100 rounded-[20px] text-xs text-emerald-900 focus:ring-4 focus:ring-emerald-500/10 outline-none"
-                                                        placeholder="Tulis kunci pembahasan edukasi teknis..."
+                                                        placeholder="Tulis kunci jawaban/pembahasan..."
                                                         rows={2}
                                                     />
                                                     <div className="absolute -top-2 left-4 px-2 bg-white border border-emerald-100 rounded-full">
@@ -274,20 +265,49 @@ export default function FormAktivitas({ materi, tahap, primm }: { materi: any; t
                                         </div>
                                     ))}
                                 </div>
-                                
-                                <button type="button" onClick={() => tambahSoal(bIndex)} className="flex items-center gap-2 font-bold text-[10px] uppercase text-emerald-600 ml-10">
+
+                                <button 
+                                    type="button" 
+                                    onClick={() => tambahSoal(bIndex)} 
+                                    className="flex items-center gap-2 font-bold text-[10px] uppercase text-emerald-600 ml-10 hover:text-emerald-700"
+                                >
                                     <Plus className="w-4 h-4" /> Tambah Soal untuk Gambar Ini
                                 </button>
+
+                                {(tahap.toLowerCase() === 'modify' || tahap.toLowerCase() === 'make') && (
+                                    <div className="space-y-4 pt-4 border-t border-gray-50 mt-4">
+                                        <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest flex items-center gap-2">
+                                            <Monitor size={14} className="text-emerald-600" />
+                                            Link Google Colab
+                                        </label>
+                                        <input 
+                                            type="text"
+                                            value={blok.link_colab || ""}
+                                            onChange={(e) => updateLinkColab(bIndex, e.target.value)}
+                                            className="w-full p-4 bg-gray-50 border border-gray-200 rounded-[20px] text-xs focus:ring-4 focus:ring-emerald-500/10 focus:border-emerald-500 outline-none"
+                                            placeholder="Paste link di sini..."
+                                        />
+                                    </div>
+                                )}
                             </div>
                         </div>
                     ))}
 
-                    <div className="flex justify-end gap-4 pb-12">
+                    <button 
+                        type="button" 
+                        onClick={tambahBlok}
+                        className="w-full py-8 border-2 border-dashed border-emerald-200 rounded-[40px] text-emerald-600 font-black uppercase text-[12px] tracking-widest hover:bg-emerald-50 hover:border-emerald-400 transition-all flex flex-col items-center justify-center gap-2 group"
+                    >
+                        <Plus className="group-hover:rotate-90 transition-transform" />
+                        Tambah Gambar & Set Pertanyaan Baru
+                    </button>
+
+                    <div className="flex justify-end gap-4 pb-12 pt-4">
                         <Link href={`/guru/course/primm/list-primm/${materi.id}`} className="px-8 py-4 bg-gray-600 text-white rounded-2xl font-black text-[12px] uppercase">
                             Batal
                         </Link>
-                        <button type="submit" className="bg-blue-600 text-white px-10 py-4 rounded-2xl font-black text-[12px] uppercase shadow-xl hover:bg-blue-700 transition-all">
-                            <Save className="w-4 h-4 inline mr-2" /> Simpan Aktivitas
+                        <button type="submit" className="bg-blue-600 text-white px-10 py-4 rounded-2xl font-black text-[12px] uppercase shadow-xl hover:bg-blue-700 transition-all flex items-center gap-2">
+                            <Save className="w-4 h-4" /> Simpan Semua Aktivitas
                         </button>
                     </div>
                 </form>

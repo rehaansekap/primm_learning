@@ -56,8 +56,6 @@ export default function DashboardGuru({ auth, stats }: Props) {
                         </div>
                     </div>
 
-
-                      {/* Kartu Materi (Abu-abu) */}
                     <div className="w-full md:w-64 bg-[#D9D9D9] p-6 rounded-md shadow-md flex items-center justify-between transition-transform hover:scale-105">
                         <div className="flex flex-col items-center">
                             <BookOpen size={48} className="text-[#8899CC]" strokeWidth={1.5} />

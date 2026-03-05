@@ -15,14 +15,15 @@ class UserController extends Controller
       $search = $request->input('search');
 
       $users = User::query()
-          ->when($search, function ($query) use ($search) {
-              $query->where('name', 'like', "%{$search}%")
-                    ->orWhere('email', 'like', "%{$search}%");
-          })
-          ->where('role', 'siswa')
-          ->orderBy('name')
-          ->paginate(10)
-          ->withQueryString();
+        ->withTrashed()
+        ->when($search, function ($query) use ($search) {
+            $query->where('name', 'like', "%{$search}%")
+                ->orWhere('email', 'like', "%{$search}%");
+        })
+        ->where('role', 'siswa')
+        ->orderBy('name')
+        ->paginate(10)
+        ->withQueryString();
 
       return Inertia::render('guru/list-siswa', [
           'users' => $users,
@@ -30,5 +31,26 @@ class UserController extends Controller
               'search' => $search,
           ],
       ]);
+    }
+
+    public function restore($id) {
+        User::withTrashed()->findOrFail($id)->restore();
+        return back();
+    }
+
+    public function destroy(User $user)
+    {
+        $user->delete(); 
+
+        return back()->with('success', 'Siswa berhasil dinonaktifkan (arsip).');
+    }
+
+    public function forceDestroy($id)
+    {
+        $user = User::withTrashed()->findOrFail($id);
+
+        $user->forceDelete(); 
+
+        return back()->with('success', 'Data uji coba berhasil dihapus permanen.');
     }
 }

@@ -3,13 +3,12 @@ import { Link, Head } from '@inertiajs/react';
 import { 
     Lock, CheckCircle2, Monitor, ChevronRight, 
     Telescope, PlayCircle, SearchCode, Pencil, Cpu, BookOpen, Users, 
-    ArrowRight
+    ArrowRight, ArrowLeft
 } from "lucide-react";
 import AppLayout from '@/layouts/app-layout';
 
-export default function ListPrimm({ course, progress }: any) {
-    const [showInstructions, setShowInstructions] = useState(true);
-
+export default function ListPrimm({ course, progress, isAllFinished }: any) {
+    const [showInstructions, setShowInstructions] = useState(!isAllFinished);
     const steps = ["predict", "run", "investigate", "modify", "make"];
 
     const stepIcons = [Telescope, PlayCircle, SearchCode, Pencil, Cpu];
@@ -68,7 +67,7 @@ export default function ListPrimm({ course, progress }: any) {
                                             { t: "Lalu, kerjakan pada kegiatan Menjalankan program", i: PlayCircle, c: "bg-emerald-500" },
                                             { t: "Kemudian, kerjakan pada kegiatan Menelusuri program", i: SearchCode, c: "bg-blue-500" },
                                             { t: "Selanjutnya, kerjakan pada kegiatan Memodifikasi program", i: Pencil, c: "bg-purple-500" },
-                                            { t: "Setelah itu, kerjakan pada kegiatan Mmebuat program", i: Cpu, c: "bg-rose-500" }
+                                            { t: "Setelah itu, kerjakan pada kegiatan Membuat program", i: Cpu, c: "bg-rose-500" }
                                         ].map((item, i) => (
                                             <div key={i} className="flex items-center gap-4 p-3 bg-white border border-gray-100 rounded-2xl shadow-sm">
                                                 <div className={`w-8 h-8 ${item.c} text-white rounded-lg flex items-center justify-center flex-shrink-0`}>
@@ -81,10 +80,10 @@ export default function ListPrimm({ course, progress }: any) {
                                 </div>
                             </div>
 
-                            <div className="mt-8 flex justify-end">
+                            <div className="mt-6 flex justify-end">
                                 <button
                                     onClick={() => setShowInstructions(false)}
-                                    className="px-5 py-3 bg-[#0F828C] hover:bg-[#0d6d74] text-white rounded-xl font-bold text-md transition-all shadow-lg shadow-emerald-100 flex items-center gap-2 active:scale-95"
+                                    className="px-4 py-2 bg-[#0F828C] hover:bg-[#0d6d74] text-white rounded-xl font-bold text-md transition-all shadow-lg shadow-emerald-100 flex items-center gap-2 active:scale-95"
                                 >
                                      MULAI <ArrowRight size={20} />
                                 </button>
@@ -94,6 +93,16 @@ export default function ListPrimm({ course, progress }: any) {
                 ) : (
 
                     <div className="animate-in fade-in slide-in-from-bottom-4 duration-700">
+                        <div className="mb-6 flex justify-start">
+                            <Link 
+                                href="/siswa/courseSiswa" 
+                                className="group flex items-center gap-2 px-4 py-3 bg-gray-400 border border-gray-200 text-white rounded-xl text-[11px] font-bold uppercase tracking-widest hover:bg-gray-200 hover:text-black transition-all shadow-sm"
+                            >
+                                <ArrowLeft size={16} className="group-hover:-translate-x-1 transition-transform" />
+                                Kembali ke List Materi
+                            </Link>
+                        </div>
+
                         <div className="mb-10 text-left">
                             <h1 className="text-3xl font-black text-black uppercase tracking-tighter">
                                 Materi : <span className="text-blue-600">{course.title}</span>

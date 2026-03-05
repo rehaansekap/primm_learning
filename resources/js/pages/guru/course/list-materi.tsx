@@ -5,7 +5,6 @@ import FormTambahMateri from './form-tambah-materi';
 import { Plus, FileText, CheckCircle2 } from "lucide-react"; 
 import { Link, router, usePage } from '@inertiajs/react';
 
-/* ===== TYPES ===== */
 type Category = {
   id: number;
   name: string;
@@ -23,7 +22,6 @@ type PageProps = {
   courses: Course[];
 };
 
-/* ===== BREADCRUMB ===== */
 const breadcrumbs: BreadcrumbItem[] = [
   { title: 'Tambah dan List Materi', href: '/guru/course/list-materi' },
 ];
@@ -33,7 +31,7 @@ const ListMateri = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const { flash } = usePage().props as any;
   const [showSuccessMsg, setShowSuccessMsg] = useState(false);
-  // Show success message when flash message appears
+
     useEffect(() => {
         if (flash?.success) {
             setShowSuccessMsg(true);
@@ -57,7 +55,6 @@ const ListMateri = () => {
   return (
     <AppLayout breadcrumbs={breadcrumbs}>
       <div className="p-6">
-        {/* Success Message */}
         {showSuccessMsg && (
             <div className="max-w-6xl mx-auto mb-6 animate-in fade-in slide-in-from-top-4 duration-500">
                 <div className="bg-emerald-50 border-2 border-emerald-200 text-emerald-800 px-6 py-4 rounded-[20px] flex items-center gap-3 shadow-md">

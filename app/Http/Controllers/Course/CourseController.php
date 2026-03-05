@@ -1,7 +1,7 @@
 <?php
 
 namespace App\Http\Controllers\Course;
-
+use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -90,7 +90,14 @@ class CourseController extends Controller
      */
     public function destroy(Course $course)
     {
-        //
+        DB::table('course_progress')->where('course_id', $course->id)->delete();
+    
+    \App\Models\StudentAnswer::whereHas('question.primm', function($q) use ($course) {
+        $q->where('course_id', $course->id);
+    })->delete();
+
+    $course->delete();
+    return back();
     }
 
     /**
@@ -108,7 +115,6 @@ class CourseController extends Controller
             $course->update(['link' => $request->embed_code, 'file' => null]);
         } else {
             if ($request->hasFile('file_materi')) {
-                // Delete old file if exists
                 if ($course->file) {
                     Storage::disk('public')->delete($course->file);
                 }
@@ -131,4 +137,6 @@ class CourseController extends Controller
           storage_path('app/public/' . $course->file)
       );
     }
+
+    
 }

@@ -19,7 +19,7 @@ class DashboardController extends Controller
 
         $totalMateri = Course::count();
 
-        $totalAktivitas = Primm::count(); 
+        $totalAktivitas = Primm::distinct('course_id')->count('course_id');
         
         $siswaSelesai = User::where('role', 'siswa')
             ->whereHas('answers.question.primm', function ($query) {

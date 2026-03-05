@@ -24,7 +24,6 @@ export default function editTest({ test }: Props) {
 
     const submit = (e: React.FormEvent) => {
         e.preventDefault();
-        // Gunakan method PUT untuk update data ke route 'guru.test.update'
         put(`/guru/test/${test.id}`);
     };
 

@@ -6,7 +6,6 @@ import { Save, User, MessageSquare } from "lucide-react";
 
 export default function DetailJawaban({ student, answers }: any) {
     const { data, setData, post, processing } = useForm({
-        // Menampung skor dan feedback dalam satu state object
         scores: {} as Record<number, string | number>,
         feedbacks: {} as Record<number, string>,
     });
@@ -24,7 +23,6 @@ export default function DetailJawaban({ student, answers }: any) {
             preserveScroll: true,
             onSuccess: () => {
                 alert('Semua nilai dan feedback berhasil disimpan!');
-                router.visit('/guru/nilai/daftarNilai');
             },
         });
     };
@@ -40,7 +38,6 @@ export default function DetailJawaban({ student, answers }: any) {
             
             <div className="p-8 bg-slate-50 min-h-screen">
                 <div className="max-w-4xl mx-auto">
-                    {/* Header Profil Siswa */}
                     <div className="bg-white rounded-2xl p-6 mb-8 border border-slate-200 shadow-sm flex items-center justify-between">
                         <div className="flex items-center gap-4">
                             <div className="w-12 h-12 rounded-full bg-slate-900 flex items-center justify-center text-white">
@@ -57,28 +54,38 @@ export default function DetailJawaban({ student, answers }: any) {
 
                     {answers.map((ans: any) => (
                         <div key={ans.id} className="bg-white border border-slate-200 rounded-2xl p-6 mb-6 shadow-sm overflow-hidden">
-                            {/* Label Fase */}
                             <div className="mb-4">
                                 <span className="px-3 py-1 bg-indigo-50 text-indigo-700 text-xs font-black rounded-lg border border-indigo-100 uppercase">
                                     Fase: {ans.question?.primm?.tahap || 'Umum'}
                                 </span>
                             </div>
                             
-                            {/* Pertanyaan & Jawaban */}
                             <div className="space-y-4 mb-6">
+                                {ans.question?.primm?.gambar && (
+                                    <div className="mb-4 rounded-2xl overflow-hidden border border-slate-100 shadow-sm bg-slate-50 p-2">
+                                        <img 
+                                            src={`/storage/${ans.question.primm.gambar}`} 
+                                            alt="Gambar Aktivitas" 
+                                            className="w-full h-auto max-h-30 object-contain mx-auto rounded-xl"
+                                        />
+                                    </div>
+                                )}
+
                                 <div>
                                     <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1">Pertanyaan:</label>
                                     <p className="text-slate-800 font-medium">{ans.question?.pertanyaan}</p>
                                 </div>
+                                
                                 <div>
-                                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1">Jawaban Siswa:</label>
-                                    <pre className="bg-slate-900 text-emerald-400 p-4 rounded-xl text-sm font-mono mt-1 overflow-x-auto border-l-4 border-emerald-500">
+                                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1">
+                                        Jawaban Siswa:
+                                    </label>
+                                    <pre className="bg-emerald-50 text-black p-4 rounded-xl text-sm font-mono mt-1 border-l-4 border-emerald-500 whitespace-pre-wrap break-words overflow-visible">
                                         {ans.jawaban_siswa}
                                     </pre>
                                 </div>
                             </div>
 
-                            {/* Input Area (Skor & Feedback) */}
                             <div className="bg-slate-50 p-5 rounded-2xl border border-slate-100 space-y-4">
                                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                                     <div className="md:col-span-1">
@@ -113,7 +120,6 @@ export default function DetailJawaban({ student, answers }: any) {
                         </div>
                     ))}
 
-                    {/* Tombol Simpan */}
                     <div className="mt-8 flex justify-end">
                         <button 
                             onClick={handleSaveAll}

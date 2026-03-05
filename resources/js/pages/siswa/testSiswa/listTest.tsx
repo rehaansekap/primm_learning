@@ -88,7 +88,6 @@ export default function ListTest() {
                             onClick={handleCloseModal}
                         ></div>
 
-                        {/* Modal Content */}
                         <div className="relative bg-white w-full max-w-lg rounded-3xl shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-300">
                             <div className="bg-indigo-600 p-6 text-white flex justify-between items-center">
                                 <div className="flex items-center gap-3">

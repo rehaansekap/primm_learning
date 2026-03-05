@@ -56,42 +56,39 @@ class CourseSiswaController extends Controller
             })
             ->pluck('jawaban_siswa', 'primm_question_id'); 
 
+         $isAllFinished = DB::table('course_progress')
+        ->where('user_id', $userId)
+        ->where('course_id', $id)
+        ->exists();    
+
         return Inertia::render('siswa/courseSiswa/showPrimm', [
             'course' => $course,
             'primm' => $primmData,
             'activeStepFromUrl' => $step,
-            'existingAnswers' => $existingAnswers 
+            'existingAnswers' => $existingAnswers,
+            'isAllFinished' => $isAllFinished
         ]);
-}
+    }
 
     public function saveProgress(Request $request)
     {
-        $request->validate([
-            'jawaban' => 'required|array', 
-        ]);
+        $request->validate(['jawaban' => 'required|array']);
 
         try {
             $userId = Auth::id();
-            $jawabanSiswa = $request->input('jawaban'); 
-            foreach ($jawabanSiswa as $questionId => $teksJawaban) {
-                if (!empty($teksJawaban)) {
-                    \App\Models\StudentAnswer::updateOrCreate(
-                        [
-                            'user_id' => $userId,
-                            'primm_question_id' => $questionId,
-                        ],
-                        [
-                            'jawaban_siswa' => $teksJawaban,
-                            
-                        ]
+            
+            collect($request->input('jawaban'))->each(function ($teks, $questionId) use ($userId) {
+                if (!empty($teks)) {
+                    StudentAnswer::updateOrCreate(
+                        ['user_id' => $userId, 'primm_question_id' => $questionId],
+                        ['jawaban_siswa' => $teks]
                     );
                 }
-            }
+            });
 
-            return back()->with('success', 'Jawaban berhasil disimpan!');
-
+            return back()->with('success', 'Jawaban terkunci dan pembahasan terbuka!');
         } catch (\Exception $e) {
-            return back()->with('error', 'Gagal menyimpan: ' . $e->getMessage());
+            return back()->with('error', 'Gagal: ' . $e->getMessage());
         }
     }
 
@@ -103,7 +100,6 @@ class CourseSiswaController extends Controller
         $progress = [];
 
         foreach ($steps as $step) {
-            // Cek apakah ada jawaban siswa yang terhubung ke soal di tahap ini
             $isCompleted = \App\Models\StudentAnswer::where('user_id', $userId)
                 ->whereHas('question.primm', function($query) use ($id, $step) {
                     $query->where('course_id', $id)->where('tahap', $step);
@@ -112,9 +108,15 @@ class CourseSiswaController extends Controller
             $progress[$step] = $isCompleted;
         }
 
+        $isAllFinished = DB::table('course_progress')
+        ->where('user_id', $userId)
+        ->where('course_id', $id)
+        ->exists();
+
         return Inertia::render('siswa/courseSiswa/listPrimm', [
             'course' => $course,
-            'progress' => $progress 
+            'progress' => $progress, 
+            'isAllFinished' => $isAllFinished
         ]);
     }
 
@@ -147,7 +149,8 @@ class CourseSiswaController extends Controller
                 ['created_at' => now(), 'updated_at' => now()]
             );
 
-        return Redirect::route('siswa.course.index')->with('success', 'Selamat! Materi telah selesai.');
+        return Redirect::route('siswa.course.index')
+        ->with('success', 'Selamat! Materi telah selesai.');
 
         } catch (\Exception $e) {
             return back()->with('error', 'Gagal memproses penyelesaian: ' . $e->getMessage());

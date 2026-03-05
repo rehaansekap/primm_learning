@@ -8,6 +8,7 @@ interface User {
   name: string;
   email: string;
   jk: string;
+  deleted_at: string | null;
 }
 
 interface PaginationLink {
@@ -44,6 +45,30 @@ export default function DataUser() {
     );
   }
 
+  function handleRestore(id: number) {
+    if (confirm('Aktifkan kembali siswa ini?')) {
+      router.put(`/guru/list-siswa/restore/${id}`, {}, {
+        preserveScroll: true,
+      });
+    }
+  }
+
+  function handleDelete(id: number, name: string) {
+    if (confirm(`Non-aktifkan siswa ${name}? Riwayat PRIMM akan tetap tersimpan.`)) {
+      router.delete(`/guru/list-siswa/${id}`, {
+        preserveScroll: true,
+      });
+    }
+  }
+
+  function handleForceDelete(id: number, name: string) {
+    if (confirm(`PERINGATAN: Apakah Anda yakin ingin menghapus ${name} SELAMANYA? Semua riwayat nilai PRIMM akan hilang total.`)) {
+      router.delete(`/guru/list-siswa/force-delete/${id}`, {
+        preserveScroll: true,
+      });
+    }
+  }
+
 const breadcrumbs: BreadcrumbItem[] = [
     {
         title: 'List Siswa',
@@ -54,10 +79,7 @@ const breadcrumbs: BreadcrumbItem[] = [
   return (
     <AppLayout breadcrumbs={breadcrumbs}>
       <div className="w-full px-6 lg:px-10 py-6">
-        {/* Card */}
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-
-          {/* Header */}
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between mb-6">
             <input
               type="text"
@@ -77,7 +99,6 @@ const breadcrumbs: BreadcrumbItem[] = [
             />
           </div>
 
-          {/* Table */}
           <div className="overflow-x-auto rounded-lg border border-gray-200">
             <table className="w-full text-sm text-gray-700">
               <thead className="bg-gray-100 text-gray-700">
@@ -98,13 +119,10 @@ const breadcrumbs: BreadcrumbItem[] = [
                 {users.data.map((user, index) => (
                   <tr
                     key={user.id}
-                    className="hover:bg-gray-50 transition"
+                    className={`transition ${user.deleted_at ? 'bg-gray-50 opacity-70' : 'hover:bg-gray-50'}`}
                   >
                     <td className="px-4 py-3 text-center">
-                      {(users.current_page - 1) *
-                        users.per_page +
-                        index +
-                        1}
+                      {(users.current_page - 1) * users.per_page + index + 1}
                     </td>
 
                     <td className="px-4 py-3 font-medium text-gray-800">
@@ -115,30 +133,52 @@ const breadcrumbs: BreadcrumbItem[] = [
                       {user.jk}
                     </td>
 
-                    <td className="px-4 py-3">
+                    <td className="px-4 py-3 text-gray-600">
                       {user.email}
                     </td>
 
-                    <td className="px-4 py-3 text-center space-x-2">
-                    
-                    <button className="inline-flex items-center gap-1.5 bg-red-500 hover:bg-red-600 text-white text-xs px-3 py-1.5 rounded-lg transition">
-                      <Trash2 size={14} />
-                      Hapus
-                    </button>
-                  </td>
-                  </tr>
-                ))}
+                    <td className="px-4 py-3 text-center">
+                      {user.deleted_at ? (
+                        <span className="text-[10px] font-bold bg-red-100 text-red-600 px-2 py-1 rounded-full">
+                          NON-AKTIF
+                        </span>
+                      ) : (
+                        <span className="text-[10px] font-bold bg-green-100 text-green-600 px-2 py-1 rounded-full">
+                          AKTIF
+                        </span>
+                      )}
+                    </td>
 
-                {users.data.length === 0 && (
-                  <tr>
-                    <td
-                      colSpan={5}
-                      className="py-10 text-center text-gray-500"
-                    >
-                      Data tidak ditemukan
+                    <td className="px-4 py-3 text-center space-x-2">
+                      {user.deleted_at ? (
+                        <>
+                          <button 
+                            onClick={() => handleRestore(user.id)}
+                            className="bg-blue-500 hover:bg-blue-600 text-white text-xs px-3 py-1.5 rounded-lg"
+                          >
+                            Aktifkan Kembali
+                          </button>
+                          
+                          {/* Tombol Hapus Permanen untuk membersihkan data uji coba */}
+                          <button 
+                            onClick={() => handleForceDelete(user.id, user.name)}
+                            className="bg-black hover:bg-gray-800 text-white text-xs px-3 py-1.5 rounded-lg"
+                          >
+                            Hapus Permanen
+                          </button>
+                        </>
+                      ) : (
+                        <button 
+                          onClick={() => handleDelete(user.id, user.name)}
+                          className="inline-flex items-center gap-1.5 bg-red-500 hover:bg-red-600 text-white text-xs px-3 py-1.5 rounded-lg transition"
+                        >
+                          <Trash2 size={14} />
+                          Hapus
+                        </button>
+                      )}
                     </td>
                   </tr>
-                )}
+                ))}
               </tbody>
             </table>
           </div>

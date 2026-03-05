@@ -72,6 +72,11 @@ export default function Login({
                 autoFocus
                 autoComplete="email"
                 placeholder="email@example.com"
+                className="
+                  bg-gray-200
+                  text-black
+                  placeholder-gray-400
+                "
               />
               <InputError message={errors.email} />
             </div>
@@ -98,8 +103,8 @@ export default function Login({
                 autoComplete="current-password"
                 placeholder="Password"
                 className="
-                  bg-white
-                  text-gray-900
+                  bg-gray-200
+                  text-black
                   placeholder-gray-400
                 "
               />

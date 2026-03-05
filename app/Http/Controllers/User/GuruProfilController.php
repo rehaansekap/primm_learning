@@ -28,7 +28,6 @@ class GuruProfilController extends Controller
 
         $user->update($request->only('name', 'jk', 'email'));
 
-        // Redirect dinamis: Jika role 'guru' ke /guru/dashboard, jika 'siswa' ke /siswa/dashboard
         return redirect()->to('/' . $user->role . '/dashboard')
                         ->with('success', 'Profil berhasil diperbarui');
     }

@@ -8,7 +8,7 @@ export default function DetailHasil({ reports, course_title }: any) {
         <AppLayout>
             <Head title={`Detail - ${course_title}`} />
             
-            <div className="p-8 bg-[#F8FAFC] min-h-screen font-sans">
+            <div className="p-6 bg-[#F8FAFC] min-h-screen font-sans">
                 <div className="max-w-4xl mx-auto">
                     <div className="mb-8 flex items-center gap-4">
                         <h1 className="text-2xl font-black text-slate-900 uppercase tracking-tighter">
@@ -87,10 +87,10 @@ export default function DetailHasil({ reports, course_title }: any) {
                             </div>
                         ))}
 
-                        <div className="pt-4 flex justify-between">
+                        <div className=" flex justify-between">
                             <Link 
                                 href="/siswa/nilaiSiswa" 
-                                className="inline-flex items-center gap-3 px-8 py-3 bg-slate-600 border border-slate-200 text-white rounded-2xl hover:bg-slate-800 hover:text-white transition-all active:scale-95 group font-black uppercase text-xs tracking-widest"
+                                className="inline-flex items-center gap-3 px-5 py-3 bg-slate-500 border border-slate-200 text-white rounded-2xl hover:bg-slate-800 hover:text-white transition-all active:scale-95 group font-black uppercase text-xs tracking-widest"
                             >
                                 <ArrowLeft size={18} className="group-hover:-translate-x-1 transition-transform" />
                                 Kembali ke Daftar Nilai

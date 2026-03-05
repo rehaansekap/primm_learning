@@ -62,7 +62,6 @@ export default function ContentMateri({ materi }: { materi: any }) {
             <div className="p-4 md:p-8 bg-[#F8FAFC] min-h-screen font-sans">
                 <form onSubmit={handleSubmit} className="max-w-6xl mx-auto space-y-6">
                     
-                    {/* TOP BAR: BACK & STATUS */}
                     <div className="flex justify-between items-center ">
                         <Link href="/guru/course" className="flex items-center gap-2 text-gray-500 hover:text-emerald-600 transition-all font-bold text-xs uppercase tracking-wider">
                             <ArrowLeft size={16} /> Kembali ke Daftar
@@ -76,12 +75,10 @@ export default function ContentMateri({ materi }: { materi: any }) {
                             </div>
 
                             <div className="space-y-1">
-                                {/* Judul yang menonjol */}
                                 <h1 className="text-2xl md:text-3xl font-bold text-gray-900 tracking-tight capitalize">
                                     {data.judul}
                                 </h1>
                                 
-                                {/* Deskripsi dengan warna yang lebih soft */}
                                 <p className="text-gray-500 text-sm md:text-base max-w-2xl leading-relaxed">
                                     {data.deskripsi}
                                 </p>
@@ -90,9 +87,7 @@ export default function ContentMateri({ materi }: { materi: any }) {
                     </div>
 
                     <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-                        {/* KOLOM INPUT (4 BAGIAN) */}
                         <div className="lg:col-span-5 space-y-6">
-                            {/* Switcher Tab yang Elegan */}
                             <div className="bg-white p-2 rounded-[25px] shadow-sm flex gap-2 border border-gray-50">
                                 <button 
                                     type="button" 
@@ -110,7 +105,6 @@ export default function ContentMateri({ materi }: { materi: any }) {
                                 </button>
                             </div>
 
-                            {/* Input Container */}
                             <div className="bg-white p-8 rounded-[40px] shadow-sm border border-gray-100 min-h-[350px]">
                                 {data.tipe_konten === 'link' ? (
                                     <div className="space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-500 text-center">

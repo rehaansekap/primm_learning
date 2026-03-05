@@ -16,25 +16,35 @@ class PrimmController extends Controller
     {
         $blocks = $request->input('blok');
 
+        // 1. Ambil semua ID blok yang dikirim dari form
+        $incomingBlockIds = collect($blocks)->pluck('id')->filter()->toArray();
+
+        \App\Models\Primm::where('course_id', $materiId)
+            ->where('tahap', $tahap)
+            ->whereNotIn('id', $incomingBlockIds)
+            ->delete();
+
         foreach ($blocks as $index => $data) {
-            
+            // Simpan atau update data PRIMM (Blok)
             $primm = \App\Models\Primm::updateOrCreate(
-                ['id' => $data['id'] ?? null],
+                ['id' => (isset($data['id']) && $data['id'] < 1000000000000) ? $data['id'] : null],
                 [
                     'course_id' => $materiId,
                     'tahap'     => $tahap,
                     'link_colab' => $data['link_colab'] ?? null,
                     'gambar'     => $request->hasFile("gambar_{$index}") 
-                                    ? $request->file("gambar_{$index}")->store("primm/{$tahap}", 'public') 
-                                    : ($data['existing_gambar'] ?? null),
+                        ? $request->file("gambar_{$index}")->store("primm/{$tahap}", 'public') 
+                        : ($data['existing_gambar'] ?? null),
                 ]
             );
 
+            // 3. Sinkronisasi Pertanyaan (Logika Anda sudah benar di sini)
             $incomingQuestionIds = collect($data['pertanyaan'] ?? [])
                 ->pluck('id')
                 ->filter()
                 ->toArray();
 
+            // Hapus pertanyaan yang tidak ada di form (untuk blok ini)
             $primm->questions()->whereNotIn('id', $incomingQuestionIds)->delete();
 
             if (isset($data['pertanyaan']) && is_array($data['pertanyaan'])) {
@@ -42,9 +52,9 @@ class PrimmController extends Controller
                     $teks = $qData['teks'] ?? '';
                     $pembahasan = $qData['pembahasan'] ?? ''; 
 
-                    if (!empty($teks)) {
+                    if (!empty(trim($teks))) {
                         $primm->questions()->updateOrCreate(
-                            ['id' => $qData['id'] ?? null],
+                            ['id' => (isset($qData['id']) && $qData['id'] < 1000000000000) ? $qData['id'] : null],
                             [
                                 'pertanyaan' => $teks,
                                 'pembahasan' => $pembahasan 

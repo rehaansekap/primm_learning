@@ -20,13 +20,11 @@ const FormTambahMateri: React.FC<Props> = ({ isOpen, onClose, categories }) => {
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-      {/* Overlay */}
       <div
         className="absolute inset-0 bg-black/50 backdrop-blur-sm"
         onClick={onClose}
       />
 
-      {/* Modal */}
       <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden">
         <div className="p-6 border-b flex justify-between items-center bg-gray-50">
           <h2 className="text-xl font-bold text-gray-800">
@@ -40,7 +38,6 @@ const FormTambahMateri: React.FC<Props> = ({ isOpen, onClose, categories }) => {
           </button>
         </div>
 
-        {/* FORM INERTIA */}
         <Form
           method="post"
           action="/guru/course/tambah-materi"

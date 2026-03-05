@@ -54,7 +54,6 @@ export default function ListCourse() {
                                     )}
                                 </div>
 
-                                {/* Content */}
                                 <div className="space-y-3">
                                     <h3 className={`text-xl font-bold leading-tight ${isLocked ? 'text-gray-400' : 'text-gray-900'}`}>
                                         {course.title}
@@ -64,7 +63,6 @@ export default function ListCourse() {
                                     </p>
                                 </div>
 
-                                {/* Progress Indicator */}
                                 <div className="mt-8 pt-6 border-t border-gray-100 flex items-center justify-between">
                                     <div className="flex items-center text-xs font-medium text-gray-400">
                                         <BookOpen className="w-4 h-4 mr-1.5" />

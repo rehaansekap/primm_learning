@@ -4,21 +4,21 @@ import { Link } from '@inertiajs/react';
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
 
-// Interface disesuaikan dengan struktur relasi database baru
 interface Question {
     id: number;
     pertanyaan: string;
+    pembahasan?: string;
 }
 
 interface PrimmBlock {
     id: number;
     gambar: string | null;
     link_colab: string | null;
-    questions: Question[]; // Menggunakan relasi tabel primm_questions
+    questions: Question[];
 }
 
 interface PrimmRecord {
-    [key: string]: PrimmBlock[] | null; // Sekarang berupa Array dari Blok
+    [key: string]: PrimmBlock[] | null; 
 }
 
 const breadcrumbs: BreadcrumbItem[] = [
@@ -45,7 +45,6 @@ export default function ListPrimm({ materi, primm }: { materi: any; primm: Primm
         <AppLayout breadcrumbs={breadcrumbs}>
             <div className="p-10 bg-gray-50 min-h-screen w-full font-sans">
                 
-                {/* HEADER SECTION */}
                 <div className="mb-8 p-6 bg-white rounded-2xl shadow-sm border border-gray-100">
                     <Link 
                         href={`/guru/course`} 
@@ -74,7 +73,6 @@ export default function ListPrimm({ materi, primm }: { materi: any; primm: Primm
                     </div>
                 </div>
                 
-                {/* LIST TAHAPAN */}
                 <div className="max-w-full space-y-4">
                     {tahapan.map((item) => {
                         const dataBlocks = primm[item.toLowerCase()];
@@ -154,7 +152,6 @@ export default function ListPrimm({ materi, primm }: { materi: any; primm: Primm
                     })}
                 </div>
 
-                {/* MODAL PREVIEW */}
                 {previewModal.open && (
                     <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
                         <div className="bg-white rounded-[40px] shadow-2xl max-w-3xl w-full max-h-[85vh] overflow-hidden flex flex-col">
@@ -187,12 +184,38 @@ export default function ListPrimm({ materi, primm }: { materi: any; primm: Primm
 
                                         <div className="grid gap-3">
                                             {blok.questions.map((q, qIdx) => (
-                                                <div key={q.id} className="flex gap-4 p-5 bg-white rounded-2xl border border-gray-100 shadow-sm hover:border-emerald-200 transition-colors">
-                                                    <span className="font-black text-emerald-600 text-sm">{bIdx + 1}{String.fromCharCode(97 + qIdx)}.</span>
-                                                    <p className="text-sm font-semibold text-gray-700 leading-relaxed">{q.pertanyaan}</p>
-                                                </div>
-                                            ))}
+                                                /* Kita bungkus pertanyaan dan pembahasan dalam satu fragment atau div */
+                                                <div key={q.id} className="space-y-3"> 
+                                                    
+                                                    {/* Box Pertanyaan */}
+                                                    <div className="flex gap-4 p-5 bg-white rounded-2xl border border-gray-100 shadow-sm hover:border-emerald-200 transition-colors">
+                                                        <span className="font-black text-emerald-600 text-sm">
+                                                            {bIdx + 1}{String.fromCharCode(97 + qIdx)}.
+                                                        </span>
+                                                        <p className="text-sm font-semibold text-gray-700 leading-relaxed">
+                                                            {q.pertanyaan}
+                                                        </p>
+                                                    </div>
+
+                                                    {/* Box Pembahasan (Sekarang berada DI DALAM loop map) */}
+                                                    {q.pembahasan && (
+                                                        <div className="ml-8 p-4 bg-amber-50 rounded-xl border-l-4 border-amber-400">
+                                                            <div className="flex items-center gap-2 mb-1">
+                                                                <span className="text-[10px] font-bold text-amber-700 uppercase tracking-wider">
+                                                                    Pembahasan & Kunci Jawaban
+                                                                </span>
+                                                            </div>
+                                                            <p className="text-sm text-amber-800 leading-relaxed">
+                                                                {q.pembahasan}
+                                                            </p>
+                                                        </div>
+                                                    )}
+
+                                                </div> // Penutup wrapper per pertanyaan
+                                            ))} 
+                                            {/* Di sini map baru benar-benar selesai */}
                                         </div>
+
                                     </div>
                                 ))}
                             </div>

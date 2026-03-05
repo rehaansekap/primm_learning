@@ -33,7 +33,12 @@ export default function Register() {
                               autoComplete="name"
                               name="name"
                               placeholder="Full name"
-                          />
+                              className="
+                                bg-gray-200
+                                text-black
+                                placeholder-gray-400
+                                "
+                            />
                           <InputError
                               message={errors.name}
                               className="mt-2"
@@ -65,6 +70,11 @@ export default function Register() {
                               autoComplete="email"
                               name="email"
                               placeholder="email@example.com"
+                              className="
+                                bg-gray-200
+                                text-black
+                                placeholder-gray-400
+                                "
                           />
                           <InputError message={errors.email} />
                       </div>
@@ -75,7 +85,11 @@ export default function Register() {
                               id="role"
                               name="role"
                               required
-                              className="border rounded-md p-2"
+                              className="border rounded-md p-2
+                                bg-gray-200
+                                text-black
+                                placeholder-gray-400
+                                "
                           >
                               <option value="guru">Guru</option>
                               <option value="siswa">Siswa</option>
@@ -93,6 +107,11 @@ export default function Register() {
                               autoComplete="new-password"
                               name="password"
                               placeholder="Password"
+                              className="
+                                bg-gray-200
+                                text-black
+                                placeholder-gray-400
+                                "
                           />
                           <InputError message={errors.password} />
                       </div>
@@ -108,6 +127,11 @@ export default function Register() {
                               autoComplete="new-password"
                               name="password_confirmation"
                               placeholder="Confirm password"
+                              className="
+                                bg-gray-200
+                                text-black
+                                placeholder-gray-400
+                                "
                           />
                           <InputError
                               message={errors.password_confirmation}

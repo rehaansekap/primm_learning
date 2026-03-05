@@ -27,7 +27,6 @@ class GradingController extends Controller
                     ->with('question.primm')
                     ->get();
 
-                // Hitung fase PRIMM unik yang sudah dikerjakan siswa
                 $faseCount = $jawaban->map(fn($a) => $a->question->primm->tahap ?? null)
                     ->filter()->unique()->count();
 
@@ -83,6 +82,6 @@ class GradingController extends Controller
             }
         }
 
-        return redirect('/guru/nilai/daftarNilai');
+        return redirect()->route('grading.index');
     }
 }

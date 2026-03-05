@@ -30,11 +30,21 @@ export default function ShowCourse({ course }: { course: any }) {
             <Head title={course.title} />
             
             <div className="min-h-screen bg-[#F8FAFC] p-4 md:p-10 font-sans text-gray-800">
-                <div className="max-w-5xl mx-auto space-y-6">
+                <div className="max-w-3xl mx-auto space-y-6">
                     
-                    <div className="bg-white p-8 rounded-[40px] shadow-sm border border-gray-100">
-                        <h1 className="text-3xl font-black uppercase tracking-tighter">{course.title}</h1>
+                    <div className="bg-white p-8 rounded-[35px] shadow-sm border border-gray-100">
+                        <h1 className="text-3xl text-blue-600 font-bold uppercase tracking-tighter">{course.title}</h1>
                         <p className="text-gray-400 text-sm mt-2">{course.category?.name || 'Materi Umum'}</p>
+                    </div>
+
+                    <div className="bg-blue-100 p-8 rounded-[40px] shadow-sm border border-gray-100">
+                        <h3 className="text-[10px] font-black uppercase tracking-widest text-blue-500 mb-4 flex items-center gap-2">
+                            <BookOpen size={14} /> Inti Materi
+                        </h3>
+                        <div 
+                            className="prose prose-slate max-w-none text-black leading-relaxed font-medium"
+                            dangerouslySetInnerHTML={{ __html: course.description }}
+                        />
                     </div>
 
                     <div className="bg-white p-4 rounded-[45px] shadow-sm border border-gray-100 overflow-hidden">
@@ -58,22 +68,12 @@ export default function ShowCourse({ course }: { course: any }) {
                         )}
                     </div>
 
-                    <div className="bg-white p-10 rounded-[45px] shadow-sm border border-gray-100">
-                        <h3 className="text-[10px] font-black uppercase tracking-widest text-blue-500 mb-6 flex items-center gap-2">
-                            <BookOpen size={14} /> Penjelasan Materi
-                        </h3>
-                        <div 
-                            className="prose prose-slate max-w-none text-gray-600 leading-relaxed font-medium"
-                            dangerouslySetInnerHTML={{ __html: course.description }}
-                        />
-                    </div>
-
                     <div className="flex flex-row items-center justify-end py-6 gap-4 border-t border-gray-100">
                         <Link 
                             href="/siswa/courseSiswa" 
                             className="px-6 py-3 text-black bg-gray-400 font-semibold rounded-xl text-xs uppercase tracking-widest  transition-colors flex items-center gap-2"
                         >
-                            Batal
+                           <ArrowLeft size={18} /> Batal
                         </Link>
                         
                         <button 

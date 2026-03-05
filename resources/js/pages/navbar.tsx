@@ -56,22 +56,24 @@ export default function Navbar({ canRegister = true }: { canRegister?: boolean }
             <Link href="/kontak">Kontak</Link>
           </Button>
 
-          {!auth?.user && (
+          {auth?.user ? (
+            <Button
+              variant="ghost"
+              className="px-4 py-1.5 bg-[#78B9B5] hover:bg-[#68a6a2] text-white"
+              asChild
+            >
+              <Link href={auth.user.role === 'guru' ? '/guru/dashboard' : '/siswa/dashboard'}>
+                Dashboard
+              </Link>
+            </Button>
+          ) : (
             <>
-              <Button
-                variant="ghost"
-                className={`px-4 py-1.5 ${isActive('/login') && 'bg-[#78B9B5]'}`}
-                asChild
-              >
+              <Button variant="ghost" className={`px-4 py-1.5 ${isActive('/login') && 'bg-[#78B9B5]'}`} asChild>
                 <Link href="/login">Login</Link>
               </Button>
 
               {canRegister && (
-                <Button
-                  variant="ghost"
-                  className={`px-4 py-1.5 ${isActive('/register') && 'bg-[#78B9B5]'}`}
-                  asChild
-                >
+                <Button variant="ghost" className={`px-4 py-1.5 ${isActive('/register') && 'bg-[#78B9B5]'}`} asChild>
                   <Link href="/register">Daftar</Link>
                 </Button>
               )}
