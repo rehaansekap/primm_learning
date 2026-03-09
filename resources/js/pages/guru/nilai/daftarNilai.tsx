@@ -45,10 +45,10 @@ export default function DaftarNilai({ students }: Props) {
                                 <td className="p-4 border text-center">{student.rata_rata_nilai ?? '-'}</td>
                                 <td className="p-4 border text-center">
                                     <Link 
-                                        href={`/guru/nilai/detail/${student.user_id}`}
+                                        href={`/guru/nilai/siswa/${student.user_id}/courses`}
                                         className="bg-indigo-600 text-white px-4 py-2 rounded text-sm font-bold"
                                     >
-                                        Lihat & Nilai
+                                        Lihat Detail
                                     </Link>
                                 </td>
                             </tr>

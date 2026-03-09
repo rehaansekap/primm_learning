@@ -91,7 +91,7 @@ export default function HasilBelajar({ results }: any) {
                                             {res.id && !res.is_pengenalan ? (
                                                 <Link 
                                                     href={`/siswa/nilaiSiswa/detailHasil/${res.id}`}
-                                                    className="inline-flex items-center gap-2 bg-[#f4c892] text-black px-5 py-2.5 rounded-xl text-[10px] font-black hover:bg-slate-800 hover:text-white transition-all shadow-md active:scale-95 uppercase tracking-widest"
+                                                    className="inline-flex items-center gap-2 bg-[#f4c892] text-black px-5 py-2.5 rounded-xl text-[10px] font-black hover:bg-[#78B9B5] hover:text-white transition-all shadow-md active:scale-95 uppercase tracking-widest"
                                                 >
                                                     <Eye size={14} /> Detail Nilai
                                                 </Link>

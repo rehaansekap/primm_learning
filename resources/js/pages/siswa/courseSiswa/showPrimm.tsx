@@ -47,6 +47,7 @@ console.log("Apakah Status Selesai?", isAllFinished);
     const activeStep = steps[currentStep];
     const [subView, setSubView] = useState<'menu' | 'materi' | 'aktivitas'>('aktivitas');
     const [openExplatantions, setOpenExplanations] = useState<number[]>([]);
+    const [showSuccessModal, setShowSuccessModal] = useState(false);
 
     const toggleExplanation = (id: number) => {
         setOpenExplanations(prev => 
@@ -112,14 +113,13 @@ console.log("Apakah Status Selesai?", isAllFinished);
 
     const handleFinalComplete = () => {
         if (isAllFinished) {
-            router.visit('/siswa/courseSiswa'); 
+            setShowSuccessModal(true); 
             return;
         }
 
         router.post(`/siswa/courseSiswa/complete/${course.id}`, {}, {
             onSuccess: () => {
-                alert("Selamat! Seluruh tahapan PRIMM berhasil diselesaikan.");
-                router.visit('/siswa/courseSiswa'); 
+                setShowSuccessModal(true);
             },
             onError: (errors) => {
                 alert(errors.message || "Ada tahap yang belum lengkap.");
@@ -133,7 +133,7 @@ console.log("Apakah Status Selesai?", isAllFinished);
                 const nextStepIndex = currentStep + 1;
                 router.visit(`/siswa/courseSiswa/showPrimm/${course.id}/${steps[nextStepIndex]}`);
             } else {
-                router.visit('/siswa/courseSiswa');
+                handleFinalComplete();
             }
             return; 
         }
@@ -393,17 +393,6 @@ console.log("Apakah Status Selesai?", isAllFinished);
 
                     {subView === 'aktivitas' && (
                         <div className="flex flex-col md:flex-row justify-end items-center mt-12 mb-24 gap-4 w-full border-t border-gray-100 pt-10"> 
-                            {isAllFinished && course.link_drive && (
-                                <a
-                                    href={course.link_drive}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="flex items-center justify-center gap-2 bg-emerald-600 text-white px-6 py-3 rounded-xl font-black text-[11px] uppercase tracking-widest hover:bg-emerald-700 transition-all shadow-lg shadow-emerald-100 w-full md:w-auto group animate-in zoom-in duration-300"
-                                >
-                                    <Download size={18} className="group-hover:animate-bounce" />
-                                    <span>Unduh Materi Offline (PDF)</span>
-                                </a>
-                            )}
 
                             <div className="flex flex-col md:flex-row items-center md:items-center justify-end gap-4 w-full md:w-auto">
                                 {(activeStep === 'modify' || activeStep === 'make') && activities.length > 0 && (
@@ -446,8 +435,54 @@ console.log("Apakah Status Selesai?", isAllFinished);
                             </div>
                         </div>
                     )}
+
                 </div>
             </div>
+
+            {showSuccessModal && (
+                <div className="fixed inset-0 z-[999] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-300">
+                    <div className="bg-white rounded-[40px] p-8 md:p-10 max-w-md w-full shadow-2xl text-center relative animate-in zoom-in duration-300">
+                        <div className="absolute top-0 left-0 w-full h-2 bg-[#0F828C] rounded-[30px] from-blue-500 to-emerald-500"></div>
+
+                        <div className="mb-6 inline-flex items-center justify-center w-20 h-20 bg-emerald-50 text-emerald-500 rounded-full">
+                            <CheckCircle2 size={48} strokeWidth={2.5} />
+                        </div>
+
+                        <h2 className="text-2xl font-black text-slate-900 uppercase tracking-tighter mb-2">
+                            Yeyyy Selesai!!
+                        </h2>
+                        <p className="text-slate-500 text-sm font-medium mb-8 leading-relaxed">
+                            Selamat! Kamu telah menuntaskan seluruh tantangan <span className="text-blue-600 font-bold">PRIMM</span> pada materi <span className="text-slate-800 font-bold">{course.title}</span> Silahkan unduh materi dulu sebelum kembali.
+                        </p>
+
+                        <div className="space-y-3 flex flex-col items-center"> 
+                            {course.link_drive && (
+                                <a
+                                    href={course.link_drive}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="flex items-center justify-center gap-3 bg-emerald-600 text-white px-9 py-3 rounded-[10px] font-black text-[11px] uppercase tracking-widest hover:bg-emerald-700 transition-all shadow-lg shadow-emerald-200 group w-fit" 
+                                   
+                                >
+                                    <Download size={16} className="group-hover:animate-bounce" />
+                                    <span>Unduh Materi (PDF)</span>
+                                </a>
+                            )}
+                            
+                            <button
+                                onClick={() => router.visit('/siswa/courseSiswa')}
+                                className="flex items-center justify-center gap-2 bg-blue-600 text-white px-4 py-3 rounded-[10px] font-black text-[11px] uppercase tracking-widest hover:bg-blue-700 transition-all shadow-lg shadow-blue-200 w-fit"
+                            
+                            >
+                                <ArrowLeft size={16} />
+                                <span>Kembali ke Daftar Materi</span>
+                            </button>
+                        </div>
+                        
+                    </div>
+                </div>
+            )}
+
         </AppLayout>
     );
 }

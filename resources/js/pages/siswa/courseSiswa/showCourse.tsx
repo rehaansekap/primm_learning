@@ -1,9 +1,10 @@
-import React from "react";
+import React, { useState } from "react";
 import { Head, Link, router } from '@inertiajs/react'; 
-import { BookOpen, ArrowRight, ArrowLeft, CheckCircle, Download } from "lucide-react"; 
+import { BookOpen, ArrowRight, ArrowLeft, CheckCircle, Download, CheckCircle2 } from "lucide-react"; 
 import AppLayout from '@/layouts/app-layout';
 
 export default function ShowCourse({ course }: { course: any }) {
+    const [showSuccessModal, setShowSuccessModal] = useState(false);
     
     const convertYoutubeToEmbed = (url: string): string => {
         if (!url) return '';
@@ -19,8 +20,13 @@ export default function ShowCourse({ course }: { course: any }) {
 
     const handleComplete = () => {
         router.post(`/siswa/courseSiswa/complete/${course.id}`, {}, {
-            onFinish: () => {
-                router.visit('/siswa/courseSiswa/listCourse');
+            preserveState: true, 
+            onSuccess: () => {
+                setShowSuccessModal(true);
+            },
+            onError: (errors) => {
+                console.error(errors);
+                alert("Terjadi kesalahan saat menyelesaikan materi.");
             }
         });
     };
@@ -76,17 +82,6 @@ export default function ShowCourse({ course }: { course: any }) {
                             <ArrowLeft size={18} /> Batal
                         </Link>
 
-                        {course.link_drive && (
-                            <a
-                                href={course.link_drive}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="w-full md:w-auto flex items-center justify-center gap-2 bg-emerald-100 text-emerald-800 border-2 border-emerald-200 px-6 py-3 rounded-xl font-bold text-[12px] uppercase tracking-widest hover:bg-emerald-600 hover:text-white transition-all shadow-sm group"
-                            >
-                                <Download size={18} className="group-hover:bounce" />
-                                <span>Unduh PDF</span>
-                            </a>
-                        )}
                         
                         <button 
                             onClick={handleComplete}
@@ -97,6 +92,50 @@ export default function ShowCourse({ course }: { course: any }) {
                     </div>
                 </div>
             </div>
+
+            {showSuccessModal && (
+                <div className="fixed inset-0 z-[999] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-300">
+                    <div className="bg-white rounded-[40px] p-8 md:p-10 max-w-md w-full shadow-2xl text-center relative animate-in zoom-in duration-300">
+                        <div className="absolute top-0 left-0 w-full h-2 bg-[#0F828C] from-blue-500 to-emerald-500"></div>
+
+                        <div className="mb-6 inline-flex items-center justify-center w-20 h-20 bg-emerald-50 text-emerald-500 rounded-full">
+                            <CheckCircle2 size={48} strokeWidth={2.5} />
+                        </div>
+
+                        <h2 className="text-2xl font-black text-slate-900 uppercase tracking-tighter mb-2">
+                            Materi Selesai!
+                        </h2>
+                        <p className="text-slate-500 text-sm font-medium mb-8 leading-relaxed">
+                            Selamat! Kamu telah berhasil mempelajari materi <span className="text-slate-800 font-bold">{course.title}</span>.
+                        </p>
+
+                        <div className="space-y-3 flex flex-col items-center"> 
+                            {course.link_drive && (
+                                <a
+                                    href={course.link_drive}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="flex items-center justify-center gap-3 bg-emerald-600 text-white px-9 py-3 rounded-[10px] font-black text-[11px] uppercase tracking-widest hover:bg-emerald-700 transition-all shadow-lg shadow-emerald-200 group w-fit" 
+                                    
+                                >
+                                    <Download size={16} className="group-hover:animate-bounce" />
+                                    <span>Unduh Materi (PDF)</span>
+                                </a>
+                            )}
+                            
+                            <button
+                                onClick={() => router.visit('/siswa/courseSiswa')}
+                                className="flex items-center justify-center gap-2 bg-blue-600 text-white px-4 py-3 rounded-[10px] font-black text-[11px] uppercase tracking-widest hover:bg-blue-700 transition-all shadow-lg shadow-blue-200 w-fit"
+                            
+                            >
+                                <ArrowLeft size={16} />
+                                <span>Kembali ke Daftar Materi</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
         </AppLayout>
     );
 }

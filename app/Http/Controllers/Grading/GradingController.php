@@ -45,15 +45,24 @@ class GradingController extends Controller
         return Inertia::render('guru/nilai/daftarNilai', ['students' => $students]);
     }
 
-    public function show($userId)
+    public function show($userId, $courseId)
     {
-        $answers = StudentAnswer::with(['question.primm.course'])
+   
+        $student = User::findOrFail($userId);
+        $course = Course::findOrFail($courseId);
+
+        $answers = StudentAnswer::with(['question.primm']) 
         ->where('user_id', $userId)
+        ->whereHas('question.primm', function($q) use ($courseId) {
+            $q->where('course_id', $courseId); 
+        })
         ->get();
 
+
         return Inertia::render('guru/nilai/detailJawaban', [
-            'student' => \App\Models\User::find($userId),
-            'answers' => $answers
+        'student' => $student,
+        'answers' => $answers,
+        'currentMateri' => $course->title 
         ]);
     }
 
@@ -83,5 +92,19 @@ class GradingController extends Controller
         }
 
         return redirect()->route('grading.index');
+    }
+
+    public function listCourses($userId)
+    {
+        $student = User::findOrFail($userId);
+
+        $courses = Course::whereHas('courseProgress', function($q) use ($userId) {
+            $q->where('user_id', $userId);
+        })->get();
+
+        return Inertia::render('guru/nilai/daftarMateriSiswa', [
+            'student' => $student,
+            'materials' => $courses 
+        ]);
     }
 }

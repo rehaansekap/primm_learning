@@ -10,8 +10,8 @@ export default function DetailHasil({ reports, course_title }: any) {
             
             <div className="p-6 bg-[#F8FAFC] min-h-screen font-sans">
                 <div className="max-w-4xl mx-auto">
-                    <div className="mb-8 flex items-center gap-4">
-                        <h1 className="text-2xl font-black text-slate-900 uppercase tracking-tighter">
+                    <div className="mb-8 flex items-start gap-4">
+                        <h1 className="w-fit text-left text-l font-black text-white uppercase tracking-tighter bg-[#0F828C] px-10 py-1  shadow-sm ">
                             {course_title}
                         </h1>
                     </div>
@@ -37,10 +37,10 @@ export default function DetailHasil({ reports, course_title }: any) {
 
                                 <div className="p-8 space-y-8">
                                     {item.question?.primm?.gambar && (
-                                        <div className="bg-white p-6 rounded-[25px] border border-slate-100 shadow-sm flex justify-center mb-6">
+                                        <div className="bg-white p-6 border border-slate-100 shadow-sm flex justify-center mb-6">
                                             <img 
                                                 src={`/storage/${item.question.primm.gambar}`} 
-                                                className="max-w-xs w-full h-auto rounded-[15px] max-h-[180px] object-contain" 
+                                                className="max-w-[180px] w-full h-auto max-h-[120px] object-contain mx-auto" 
                                                 alt="Visual Kode" 
                                             />
                                         </div>
@@ -58,7 +58,7 @@ export default function DetailHasil({ reports, course_title }: any) {
 
                                     <div>
                                         <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-3">Jawaban Kamu:</h4>
-                                        <div className="w-full p-6 rounded-[25px] text-[14px] transition-all border-2 flex items-start bg-[#F0FDF4] border-[#BBF7D0] text-[#166534] shadow-sm">
+                                        <div className="w-full p-6 rounded-[10px] text-[14px] transition-all border-2 flex items-start bg-[#F0FDF4] border-[#BBF7D0] text-[#166534] shadow-sm">
                                             
                                             <div className="flex-1">
                                                 <pre className="bg-transparent w-full outline-none font-medium leading-relaxed whitespace-pre-wrap font-sans ">
@@ -90,7 +90,7 @@ export default function DetailHasil({ reports, course_title }: any) {
                         <div className=" flex justify-between">
                             <Link 
                                 href="/siswa/nilaiSiswa" 
-                                className="inline-flex items-center gap-3 px-5 py-3 bg-slate-500 border border-slate-200 text-white rounded-2xl hover:bg-slate-800 hover:text-white transition-all active:scale-95 group font-black uppercase text-xs tracking-widest"
+                                className="inline-flex items-center gap-3 px-2 py-3 bg-slate-500 border border-slate-200 text-white rounded-2xl hover:bg-slate-800 hover:text-white transition-all active:scale-95 group font-black uppercase text-xs tracking-widest"
                             >
                                 <ArrowLeft size={18} className="group-hover:-translate-x-1 transition-transform" />
                                 Kembali ke Daftar Nilai

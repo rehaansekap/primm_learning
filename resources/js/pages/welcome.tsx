@@ -11,8 +11,8 @@ export default function Welcome(){
     return (
         <>
         <PublicLayout>
-            <section id="home" className="w-full">
-               <div className="relative isolate px-5 pt-5 lg:px-10">
+            <section id="home" className="w-full min-h-screen flex items-center bg-white">
+               <div className="relative isolate px-5  lg:px-10">
                 <div className="mx-auto max-w-7xl py-24">
                     <div className="grid grid-cols-1 lg:grid-cols-2 items-center gap-10">
                     <div>

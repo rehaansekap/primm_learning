@@ -96,7 +96,7 @@ export default function ListPrimm({ course, progress, isAllFinished }: any) {
                         <div className="mb-6 flex justify-start">
                             <Link 
                                 href="/siswa/courseSiswa" 
-                                className="group flex items-center gap-2 px-4 py-3 bg-gray-400 border border-gray-200 text-white rounded-xl text-[11px] font-bold uppercase tracking-widest hover:bg-gray-200 hover:text-black transition-all shadow-sm"
+                                className="group flex items-center gap-2 px-3 py-2 bg-gray-500 border border-gray-200 text-white rounded-xl text-[11px] font-bold uppercase tracking-widest hover:bg-gray-200 hover:text-black transition-all shadow-sm"
                             >
                                 <ArrowLeft size={16} className="group-hover:-translate-x-1 transition-transform" />
                                 Kembali ke List Materi

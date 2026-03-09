@@ -30,6 +30,6 @@ class PrimmQuestion extends Model
     public function course()
     {
 
-        return $this->primm->course(); 
+        return $this->belongsTo(Course::class, 'primm_id');
     }
 }

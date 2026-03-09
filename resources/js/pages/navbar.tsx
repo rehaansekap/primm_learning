@@ -11,24 +11,36 @@ export default function Navbar({ canRegister = true }: { canRegister?: boolean }
 
   const [activeSection, setActiveSection] = useState('home');
 
-  useEffect(() => {
-    const sectionIds = ['home', 'guide', 'about', 'contact'];
-    
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            setActiveSection(entry.target.id);
-          }
-        });
-      },
-      { threshold: 0.6 } 
-    );
+useEffect(() => {
+  const sectionIds = ['home', 'guide', 'about', 'contact'];
+  
+  const observer = new IntersectionObserver(
+    (entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting && entry.intersectionRatio > 0.3) {
+          const id = entry.target.id;
+          setActiveSection(id);
 
-    sectionIds.forEach((id) => {
-      const el = document.getElementById(id);
-      if (el) observer.observe(el);
-    });
+          // --- TAMBAHKAN KODE INI ---
+          // Ini akan mengubah URL tanpa me-reload halaman
+          const newHash = id === 'home' ? window.location.pathname : `#${id}`;
+          if (window.location.hash !== newHash) {
+            window.history.replaceState(null, '', newHash);
+          }
+          // --------------------------
+        }
+      });
+    },
+    { 
+      threshold: [0.3, 0.5], 
+      rootMargin: "-80px 0px -50% 0px" 
+    }
+  );
+
+  sectionIds.forEach((id) => {
+    const el = document.getElementById(id);
+    if (el) observer.observe(el);
+  });
 
     return () => observer.disconnect();
   }, []);

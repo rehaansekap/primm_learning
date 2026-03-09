@@ -136,8 +136,8 @@ Route::delete('/guru/course/destroy/{course}', [CourseController::class, 'destro
 
 Route::middleware(['auth'])->group(function () {
     Route::get('/guru/nilai', [GradingController::class, 'index'])->name('grading.index');
-    Route::get('/guru/nilai/detail/{userId}', [GradingController::class, 'show'])->name('grading.show');
-    Route::put('/grading/{id}', [GradingController::class, 'update'])->name('grading.update');
+    Route::get('/guru/nilai/siswa/{userId}/courses', [GradingController::class, 'listCourses'])->name('grading.courses');
+    Route::get('/guru/nilai/detail/{userId}/{courseId}', [GradingController::class, 'show'])->name('grading.show');
     Route::post('/grading/bulk-update/{userId}', [GradingController::class, 'bulkUpdate']);
 
     Route::get('/siswa/nilaiSiswa', [StudentGradeController::class, 'index'])->name('siswa.hasil.index');

@@ -177,17 +177,15 @@ export default function ListPrimm({ materi, primm }: { materi: any; primm: Primm
                                                 <img 
                                                     src={blok.gambar.startsWith('/storage') ? blok.gambar : `/storage/${blok.gambar}`} 
                                                     alt="Preview Kode" 
-                                                    className="w-full rounded-[20px] object-contain max-h-80"
+                                                    className="mx-auto rounded-[3px] object-contain  max-w-[200px] md:max-w-md lg:max-w-lg"
                                                 />
                                             </div>
                                         )}
 
                                         <div className="grid gap-3">
                                             {blok.questions.map((q, qIdx) => (
-                                                /* Kita bungkus pertanyaan dan pembahasan dalam satu fragment atau div */
                                                 <div key={q.id} className="space-y-3"> 
-                                                    
-                                                    {/* Box Pertanyaan */}
+
                                                     <div className="flex gap-4 p-5 bg-white rounded-2xl border border-gray-100 shadow-sm hover:border-emerald-200 transition-colors">
                                                         <span className="font-black text-emerald-600 text-sm">
                                                             {bIdx + 1}{String.fromCharCode(97 + qIdx)}.
@@ -197,7 +195,6 @@ export default function ListPrimm({ materi, primm }: { materi: any; primm: Primm
                                                         </p>
                                                     </div>
 
-                                                    {/* Box Pembahasan (Sekarang berada DI DALAM loop map) */}
                                                     {q.pembahasan && (
                                                         <div className="ml-8 p-4 bg-amber-50 rounded-xl border-l-4 border-amber-400">
                                                             <div className="flex items-center gap-2 mb-1">
@@ -211,9 +208,9 @@ export default function ListPrimm({ materi, primm }: { materi: any; primm: Primm
                                                         </div>
                                                     )}
 
-                                                </div> // Penutup wrapper per pertanyaan
+                                                </div> 
                                             ))} 
-                                            {/* Di sini map baru benar-benar selesai */}
+                                       
                                         </div>
 
                                     </div>

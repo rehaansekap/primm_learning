@@ -166,9 +166,8 @@ class CourseSiswaController extends Controller
                 ['created_at' => now(), 'updated_at' => now()]
             );
 
-        return Redirect::route('siswa.course.index')
-        ->with('success', 'Selamat! Materi telah selesai.');
-
+        return back()->with('success', 'Selamat! Materi telah selesai.');
+        
         } catch (\Exception $e) {
             return back()->with('error', 'Gagal memproses penyelesaian: ' . $e->getMessage());
         }

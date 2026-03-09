@@ -27,4 +27,9 @@ class Course extends Model
   {
       return $this->hasMany(Primm::class, 'course_id');
   }
+
+  public function courseProgress()
+    {
+        return $this->hasMany(CourseProgress::class, 'course_id');
+    }
 }
