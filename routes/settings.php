@@ -25,13 +25,4 @@ Route::middleware('auth')->group(function () {
 
     Route::get('settings/two-factor', [TwoFactorAuthenticationController::class, 'show'])
         ->name('two-factor.show');
-
-    // Route::get('/about', function () {
-    //     return Inertia::render('About');
-    // })->name('about');
-
-    // Route::get('/profile', function () {
-    //     return Inertia::render('Profile');
-    // })->name('profile');
-
 });
