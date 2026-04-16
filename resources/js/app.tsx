@@ -1,6 +1,6 @@
 import '../css/app.css';
 
-import { createInertiaApp } from '@inertiajs/react';
+import { createInertiaApp, router } from '@inertiajs/react';
 import { resolvePageComponent } from 'laravel-vite-plugin/inertia-helpers';
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
@@ -27,6 +27,13 @@ createInertiaApp({
     progress: {
         color: '#4B5563',
     },
+
+});
+
+router.on('start', (event: any) => {
+    if (event.detail.visit.url.pathname === '/ask-gemini') {
+        event.detail.visit.showProgress = false;
+    }
 });
 
 // This will set light / dark mode on load...

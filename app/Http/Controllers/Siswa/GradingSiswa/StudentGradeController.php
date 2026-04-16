@@ -40,7 +40,6 @@ class StudentGradeController extends Controller
                 'id' => $course->id, 
                 'title' => $course->title, 
                 'total_fase' => $faseCount, 
-                'rata_rata_nilai' => round($jawabanMateriIni->avg('skor')) ?: 0, 
                 'total_skor_materi' => round($totalNilaiMateri) ?: 0, 
                 'is_pengenalan' => str_contains(strtolower($course->title), 'pengenalan'),
             ];

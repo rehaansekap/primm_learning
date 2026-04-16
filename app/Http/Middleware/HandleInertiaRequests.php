@@ -40,10 +40,10 @@ class HandleInertiaRequests extends Middleware
 
         return [
             ...parent::share($request),
-            // 'auth' => [
-            // 'user' => $request->user(),
-
-            //  'currentRoute' => $request->route() ? $request->route()->getName() : null,
+            'flash' => [
+            'aiResponse' => $request->session()->get('aiResponse'),
+            'error' => $request->session()->get('error'),
+            ],
 
             'name' => config('app.name'),
             'quote' => ['message' => trim($message), 'author' => trim($author)],

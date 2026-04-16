@@ -40,9 +40,6 @@ export default function HasilBelajar({ results }: any) {
                                         Fase Selesai
                                     </th>
                                     <th className="px-6 py-4 text-[11px] font-black text-black uppercase tracking-widest text-center">
-                                        Rerata Nilai
-                                    </th>
-                                    <th className="px-6 py-4 text-[11px] font-black text-black uppercase tracking-widest text-center">
                                         Total Skor
                                     </th>
                                     <th className="px-8 py-4 text-[11px] font-black text-black uppercase tracking-widest text-center">
@@ -73,10 +70,6 @@ export default function HasilBelajar({ results }: any) {
                                             ) : (
                                                 <span className="text-slate-300">-</span>
                                             )}
-                                        </td>
-
-                                        <td className="px-6 py-5 text-center text-[14px] font-black text-slate-700">
-                                            {!res.is_pengenalan ? Math.round(parseFloat(res.rata_rata_nilai)) : '-'}
                                         </td>
 
                                         <td className="px-6 py-5 text-center">
@@ -113,7 +106,7 @@ export default function HasilBelajar({ results }: any) {
                                     <span className="font-black uppercase tracking-widest text-[11px] block text-blue-700">Hasil Akhir Nilai Keseluruhan</span>
                                 </div>
                             </div>
-                            <div className="bg-white px-6 py-3 rounded-2xl shadow-sm border border-blue-200">
+                            <div className="bg-white px-4 py-2 rounded-[10px] shadow-sm border border-blue-200">
                                 <span className="text-2xl font-black text-blue-600 tracking-tighter">
                                     {hasilAkhirKeseluruhan}
                                 </span>

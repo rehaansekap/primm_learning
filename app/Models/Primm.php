@@ -12,7 +12,7 @@ class Primm extends Model
         'course_id',
         'tahap',
         'gambar',
-        'link_colab',
+        'kode_program',
     ];
 
     protected $casts = [

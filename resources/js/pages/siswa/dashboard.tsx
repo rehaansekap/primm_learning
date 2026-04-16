@@ -1,14 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { Head } from '@inertiajs/react';
 import AppLayout from '@/layouts/app-layout';
-import { Monitor, Trophy, BookOpen, UserCircle, ChevronRight, Info } from 'lucide-react';
+import { Monitor, Trophy, BookOpen, ChevronRight, Info, Activity, Target } from 'lucide-react';
 
 interface Props {
     auth: {
-        user: {
-            name: string;
-            role: string;
-        };
+        user: { name: string; role: string; };
     };
     stats: {
         totalMateri: number;
@@ -19,15 +16,11 @@ interface Props {
 }
 
 export default function DashboardSiswa({ auth, stats }: Props) {
-
     const [showWelcome, setShowWelcome] = useState(false);
 
     useEffect(() => {
-        
         const hasSeen = sessionStorage.getItem('welcome_shown');
-        if (!hasSeen) {
-            setShowWelcome(true);
-        }
+        if (!hasSeen) setShowWelcome(true);
     }, []);
 
     const closeWelcome = () => {
@@ -39,108 +32,122 @@ export default function DashboardSiswa({ auth, stats }: Props) {
         <AppLayout breadcrumbs={[{ title: 'Dashboard Siswa', href: '/siswa/dashboard' }]}>
             <Head title="Dashboard Siswa" />
 
-                {showWelcome && (
+            {/* Modal Info Penting */}
+            {showWelcome && (
                 <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-300">
                     <div className="bg-white rounded-[32px] max-w-md w-full overflow-hidden shadow-2xl border border-white animate-in zoom-in duration-300">
                         <div className="bg-white p-8 text-black text-center relative">
-                            <div className="absolute top-0 right-0 p-8 opacity-20">
-                                <Info size={40} />
-                            </div>
                             <h3 className="text-2xl font-black uppercase tracking-tight relative">INFO PENTING!</h3>
-                            <p className="text-black text-sm mt-1 relative">Alur penggunaan aplikasi:</p>
+                            <p className="text-slate-500 text-sm mt-1">Alur penggunaan aplikasi:</p>
                         </div>
-                        
-                        <div className="p-4 space-y-3">
-                            <div className="flex gap-4">
-                                <p className="text-sm text-slate-600">1. Silahkan <b>Test</b> terlebih dahulu jika belum.</p>
-                            </div>
-                            <div className="flex gap-4">
-                                <p className="text-sm text-slate-600">2. Lanjutkan ke <b>Edit Profil</b> jika ingin memperbarui data diri Anda.</p>
-                            </div>
-                            <div className="flex gap-4">
-                                <p className="text-sm text-slate-600">3. Pilih menu <b>Course</b> untuk mulai belajar .</p>
-                            </div>
-                            <div className="flex gap-4 border-t border-dashed">
-                                <p className="text-sm text-slate-600 font-medium">4. Cek <b>Grade</b> untuk melihat hasil belajar.</p>
-                            </div>
-                            <div className="flex gap-4 border-t border-dashed">
-                                <p className="text-sm text-slate-600 font-medium">5. Jangan lupa wajib <b>Logout</b> setiap pembelajaran selesai.</p>
-                            </div>
-                            
-
-                            <button 
-                                onClick={closeWelcome}
-                                className="w-full mt-4 py-3 bg-[#0F828C] hover:bg-[#0d6d74] text-white rounded-2xl font-black text-sm tracking-widest uppercase transition-all active:scale-95 flex items-center justify-center gap-2"
-                            >
-                                 Mengerti <ChevronRight size={18} />
+                        <div className="p-6 pt-0 space-y-4">
+                            <ul className="space-y-3 text-sm text-slate-600 font-medium">
+                                <li className="flex gap-3"><span>1.</span> <span>Silahkan <b>Test</b> terlebih dahulu jika belum.</span></li>
+                                <li className="flex gap-3"><span>2.</span> <span>Lanjutkan ke <b>Edit Profil</b> untuk perbarui data.</span></li>
+                                <li className="flex gap-3"><span>3.</span> <span>Pilih menu <b>Course</b> untuk mulai belajar.</span></li>
+                                <li className="flex gap-3 border-t border-dashed pt-3 font-bold text-slate-800"><span>4.</span> <span>Cek <b>Grade</b> untuk melihat hasil.</span></li>
+                                <li className="flex gap-3 text-rose-600"><span>5.</span> <span>Wajib <b>Logout</b> jika sudah selesai.</span></li>
+                            </ul>
+                            <button onClick={closeWelcome} className="w-full mt-4 py-3 bg-[#0F828C] hover:bg-[#0d6d74] text-white rounded-2xl font-black text-sm uppercase transition-all flex items-center justify-center gap-2">
+                                Mengerti <ChevronRight size={18} />
                             </button>
                         </div>
                     </div>
                 </div>
             )}
 
-            <div className="p-10 bg-[#F8FAFC] min-h-screen font-sans">
-                <div className="mb-10">
-                    <h1 className="text-2xl font-black text-slate-800 uppercase tracking-tighter">
-                        Halo, <span className="text-blue-600">{auth.user.name}</span>
-                    </h1>
-                    <p className="text-slate-500 font-medium mt-1">
-                        Selamat belajar dan semoga sukses ;) . Jangan lupa untuk berdoa terlebih dahulu!!!
-                    </p>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="bg-[#B3E5FC] p-5 rounded-[22px] flex items-center justify-between shadow-sm border border-white/50 transition-all duration-300 hover:shadow-md hover:scale-[1.02]">
+            <div className="p-6 md:p-10 bg-[#F8FAFC] min-h-screen font-sans">
+                {/* Header Section */}
+                <div className="mb-10 flex flex-col md:flex-row md:items-end justify-between gap-4">
                     <div>
-                        <div className="text-4xl font-black text-[#01579B] leading-none mb-1">
-                            {stats.totalMateri}
+                        <div className="flex items-center gap-2 mb-1">
+                            <h1 className="text-3xl font-black text-slate-800">Halo, <span className="text-blue-600 uppercase">{auth.user.name}!</span></h1>
                         </div>
-                        <div className="text-[11px] font-black uppercase tracking-widest text-[#01579B]/80">Materi</div>
-                    </div>
-                    <div className="bg-white/40 p-3 rounded-2xl shadow-inner">
-                        <BookOpen size={32} className="text-[#01579B]" strokeWidth={2.5} />
-                    </div>
-                </div>
-
-                <div className="bg-[#F7CA89] p-5 rounded-[22px] flex items-center justify-between shadow-sm border border-white/50 transition-all duration-300 hover:shadow-md hover:scale-[1.02]">
-                    <div>
-                       <div className="flex items-baseline gap-1.5 text-[#BF360C] mb-2">
-                            <span className="text-4xl font-black tracking-tight">
-                                {stats?.progresSiswa || 0}
-                            </span>
-
-                            <span className="text-sm font-bold uppercase tracking-wide opacity-80">
-                                Selesai
-                            </span>
-                            <div className="flex items-center ml-1">
-                                <span className="text-xl opacity-30 font-light">/</span>
-                                <span className="text-xl ml-1 text-[#BF360C]/60 font-bold">
-                                {stats?.totalAktivitas || 0}
-                                </span>
-                            </div>
-                            </div>
-                        <div className="text-[11px] font-black uppercase tracking-widest text-[#BF360C]/80">Aktivitas</div>
-                    </div>
-                    <div className="bg-white/40 p-3 rounded-2xl shadow-inner">
-                        <Monitor size={32} className="text-[#BF360C]" strokeWidth={2.5} />
-                    </div>
-                </div>
-
-                <div className="bg-[#BBF7D0] p-5 rounded-[22px] flex items-center justify-between shadow-sm border-2 border-[#86EFAC] transition-transform hover:scale-[1.02]">
-                    <div>
-                        <h2 className="text-4xl font-black text-[#166534] leading-none mb-1">
-                            {stats.hasilAkhir}
-                        </h2>
-                        <p className="text-[#166534] font-black uppercase tracking-widest text-[11px]">
-                            Nilai Akhir
+                        <p className="text-slate-500 font-medium max-w-lg leading-relaxed">
+                            Selamat belajar dan semoga sukses! Jangan lupa untuk berdoa terlebih dahulu.
                         </p>
                     </div>
-                    <div className="bg-white/40 p-2.5 rounded-xl">
-                        <Trophy size={32} className="text-[#166534]" strokeWidth={2.5} />
-                    </div>
+                </div>
+
+                {/* Stats Grid - Menyesuaikan Referensi Gambar */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                    
+                    {/* Card 1: Total Materi */}
+                    <StatCard 
+                        title="Total Materi"
+                        value={stats.totalMateri}
+                        subtitle="Materi Aktif"
+                        icon={<BookOpen className="text-blue-600" />}
+                        iconBg="bg-blue-100"
+                        trendColor="text-emerald-500"
+                    />
+
+                    {/* Card 2: Aktivitas */}
+                    <StatCard 
+                        title="Aktivitas"
+                        value={`${stats.progresSiswa}/${stats.totalAktivitas}`}
+                        subtitle="Selesai"
+                        icon={<Activity className="text-emerald-600" />}
+                        iconBg="bg-emerald-100"
+                        trendColor="text-emerald-500"
+                    />
+
+                    {/* Card 3: Nilai Akhir */}
+                    <StatCard 
+                        title="Nilai Akhir"
+                        value={stats.hasilAkhir || 0}
+                        subtitle={stats.hasilAkhir > 0 ? "Target tercapai" : "Belum tersedia"}
+                        icon={<Trophy className="text-amber-600" />}
+                        iconBg="bg-amber-100"
+                        trendColor="text-emerald-500"
+                    />
+
                 </div>
             </div>
-            </div>
         </AppLayout>
+    );
+}
+
+/* Sub-komponen Card agar kode lebih bersih */
+function StatCard({ title, value, subtitle, icon, iconBg, trendColor }: any) {
+    return (
+        <div className="
+            bg-white p-6 rounded-[32px] shadow-sm border border-slate-100 
+            cursor-pointer font-sans
+            /* Animasi Hover (Maju ke depan) */
+            hover:-translate-y-2 hover:shadow-xl hover:shadow-slate-200/50 hover:border-white
+            /* Animasi Klik (Membal/Press effect) */
+            active:scale-95 active:translate-y-0
+            /* Transisi Halus */
+            transition-all duration-300 ease-out 
+            group
+        ">
+            <div className="flex justify-between items-start mb-4">
+                <div className={`
+                    ${iconBg} p-3 rounded-2xl 
+                    transition-transform duration-500 
+                    group-hover:scale-110 group-hover:rotate-3
+                `}>
+                    {React.cloneElement(icon, { size: 24, strokeWidth: 2.5 })}
+                </div>
+                <div className={`p-1.5 rounded-lg bg-emerald-50 ${trendColor} transition-colors group-hover:bg-white`}>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                        <polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline>
+                        <polyline points="17 6 23 6 23 12"></polyline>
+                    </svg>
+                </div>
+            </div>
+            <div>
+                <p className="text-slate-500 text-[10px] font-black uppercase tracking-[0.1em] mb-1 transition-colors group-hover:text-slate-400">
+                    {title}
+                </p>
+                <h3 className="text-3xl font-black text-slate-800 mb-1 tracking-tight">
+                    {value}
+                </h3>
+                <p className="text-slate-400 text-[11px] font-semibold">
+                    {subtitle}
+                </p>
+            </div>
+        </div>
     );
 }

@@ -1,194 +1,189 @@
-import React, { useState } from "react"; 
+import React, { useState, useEffect } from "react"; 
 import { Link, Head } from '@inertiajs/react';
 import { 
-    Lock, CheckCircle2, Monitor, ChevronRight, 
+    Lock, CheckCircle2, ChevronRight, 
     Telescope, PlayCircle, SearchCode, Pencil, Cpu, BookOpen, Users, 
     ArrowRight, ArrowLeft
 } from "lucide-react";
 import AppLayout from '@/layouts/app-layout';
+import { useVoice } from '@/hooks/useVoice';
 
 export default function ListPrimm({ course, progress, isAllFinished }: any) {
     const [showInstructions, setShowInstructions] = useState(!isAllFinished);
+    const { speak } = useVoice();
     const steps = ["predict", "run", "investigate", "modify", "make"];
-
     const stepIcons = [Telescope, PlayCircle, SearchCode, Pencil, Cpu];
-
     const deskripsiTahap = [
-        "Ayoo belajar memprediksi program dengan fokus namun enjoy",
-        "Ayoo belajar menjalankan program apakah sesuai tebakan",
-        "Ayoo belajar menelusuri program dengan fokus namun enjoy",
-        "Ayoo belajar memodifikasi program dengan fokus namun enjoy",
-        "Ayoo belajar membuat program dengan fokus namun enjoy"
+        "Mari memprediksi hasil keluaran kode program berdasarkan pemahaman logika awal kamu.",
+        "Jalankan kode program sesungguhnya untuk melihat apakah prediksi kamu sudah tepat.",
+        "Mari menelusuri baris demi baris kode untuk memahami bagaimana program bekerja.",
+        "Ubah sedikit bagian kode untuk melihat perubahan apa yang terjadi pada program.",
+        "Saatnya membuat program baru sendiri menggunakan konsep yang telah kamu pelajari."
     ];
+
+    useEffect(() => {
+        if (showInstructions) {
+            const welcomeMessage = `Selamat datang di halaman aktivitas belajar. 
+                Di sini kamu akan belajar pemrograman tentang ${course.title}. Silakan baca petunjuk pengerjaan dan langkah kegiatan. Jika sudah dibaca, klik tombol mulai sekarang 
+                untuk belajar yang dimulai dari tahap predict.`;
+
+            const timer = setTimeout(() => {
+                speak(welcomeMessage);
+            }, 200);
+
+            return () => {
+                clearTimeout(timer);
+                window.speechSynthesis.cancel();
+            };
+        }
+    }, [showInstructions]);
 
     return (
         <AppLayout breadcrumbs={[{ title: course.title, href: '#' }]}>
             <Head title={`Daftar Tahap - ${course.title}`} />
             
-            <div className="w-full mx-auto p-4 md:p-10">
+            <div className="w-full mx-auto p-6 md:p-12 bg-white min-h-screen">
                 
                 {showInstructions ? (
-                   <div className="max-w-3xl mx-auto animate-in fade-in zoom-in duration-500 text-left">
-                        <div className="bg-blue-200 rounded-2xl p-6 md:p-8 shadow-xl shadow-gray-200 border border-gray-100 relative overflow-hidden">
-                            <div className="text-center mb-10">
-                                <h2 className="text-2xl font-black text-gray-900 tracking-tight">Panduan Aktivitas PRIMM</h2>
-                                <p className="text-gray-500 mt-2 font-s">Baca petunjuk dan langkah pengerjaan sebelum memulai pengerjaan.</p>
-                            </div>
+                    <div className="fixed inset-0 z-50 h-screen w-full bg-gray-50/80 backdrop-blur-sm overflow-hidden flex items-center justify-center p-4">
+                        <div className="max-w-4xl w-full animate-in fade-in zoom-in duration-500">
+                            <div className="bg-blue-200 p-6 md:p-8 shadow-2xl border border-white/50 relative rounded-[40px]">
+                                <div className="text-center mb-6">
+                                    <h2 className="text-2xl font-black text-gray-900 tracking-tight">Panduan Aktivitas</h2>
+                                    <p className="text-gray-600 text-sm font-medium">Ikuti langkah-langkah di bawah ini dengan cermat.</p>
+                                </div>
 
-                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
-                                <div className="space-y-6">
-                                    <h3 className="text-l font-bold text-gray-800 flex items-center gap-3">
-                                        <div className="w-8 h-8 bg-amber-100 text-amber-600 rounded-xl flex items-center justify-center font-black">A</div>
-                                        Petunjuk Pengerjaan
-                                    </h3>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 lg:gap-10">
                                     <div className="space-y-4">
-                                        {[
-                                            { text: "Kerjakan LKPD sesuai dengan instruksi secara berkelompok yang sudah ditentukan.", icon: Users },
-                                            { text: "Perhatikan soal pada aplikasi, diskusikan bersama teman sekelompokmu.", icon: BookOpen },
-                                            { text: "Pastikan setiap anggota kelompok berkontribusi aktif selama diskusi.", icon: CheckCircle2 },
-                                            { text: "Periksa kembali jawaban sebelum dikirim untuk memastikan kesalahan.", icon: CheckCircle2 }
-                                        ].map((item, i) => (
-                                            <div key={i} className="flex gap-4 p-4 rounded-2xl bg-gray-50 border border-gray-100 items-start">
-                                                <item.icon className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" />
-                                                <p className="text-gray-600 text-sm font-semibold leading-relaxed">{item.text}</p>
-                                            </div>
-                                        ))}
-                                    </div>
-                                </div>
-
-                                <div className="space-y-6">
-                                    <h3 className="text-l font-bold text-gray-800 flex items-center gap-3">
-                                        <div className="w-8 h-8 bg-blue-100 text-blue-600 rounded-xl flex items-center justify-center font-black">B</div>
-                                        Langkah Kegiatan
-                                    </h3>
-                                    <div className="space-y-3">
-                                        {[
-                                            { t: "Kerjakan kegiatan Mempredikasi kode program", i: Telescope, c: "bg-amber-500" },
-                                            { t: "Lalu, kerjakan pada kegiatan Menjalankan program", i: PlayCircle, c: "bg-emerald-500" },
-                                            { t: "Kemudian, kerjakan pada kegiatan Menelusuri program", i: SearchCode, c: "bg-blue-500" },
-                                            { t: "Selanjutnya, kerjakan pada kegiatan Memodifikasi program", i: Pencil, c: "bg-purple-500" },
-                                            { t: "Setelah itu, kerjakan pada kegiatan Membuat program", i: Cpu, c: "bg-rose-500" }
-                                        ].map((item, i) => (
-                                            <div key={i} className="flex items-center gap-4 p-3 bg-white border border-gray-100 rounded-2xl shadow-sm">
-                                                <div className={`w-8 h-8 ${item.c} text-white rounded-lg flex items-center justify-center flex-shrink-0`}>
-                                                    <item.i size={16} />
+                                        <h3 className="text-sm font-bold text-gray-800 flex items-center gap-3">
+                                            <span className="w-7 h-7 bg-amber-400 text-white rounded-lg flex items-center justify-center shadow-sm">A</span>
+                                            Petunjuk Pengerjaan
+                                        </h3>
+                                        <div className="space-y-2">
+                                            {[
+                                                { text: "Kerjakan LKPD secara berkelompok.", icon: Users },
+                                                { text: "Diskusikan soal bersama teman sekelompok.", icon: BookOpen },
+                                                { text: "Setiap anggota wajib berkontribusi aktif.", icon: CheckCircle2 },
+                                                { text: "Periksa kembali jawaban sebelum dikirim.", icon: CheckCircle2 }
+                                            ].map((item, i) => (
+                                                <div key={i} className="flex gap-3 p-3 rounded-xl bg-white/60 border border-white items-center">
+                                                    <item.icon className="w-4 h-4 text-blue-600 flex-shrink-0" />
+                                                    <p className="text-gray-700 text-xs font-bold leading-tight">{item.text}</p>
                                                 </div>
-                                                <p className="text-sm font-bold text-gray-700">{i+1}. {item.t}</p>
-                                            </div>
-                                        ))}
+                                            ))}
+                                        </div>
+                                    </div>
+
+                                    <div className="space-y-4">
+                                        <h3 className="text-sm font-bold text-gray-800 flex items-center gap-3">
+                                            <span className="w-7 h-7 bg-blue-500 text-white rounded-lg flex items-center justify-center shadow-sm">B</span>
+                                            Langkah Kegiatan
+                                        </h3>
+                                        <div className="space-y-2">
+                                            {[
+                                                { t: "Predict", i: Telescope, c: "bg-amber-500" },
+                                                { t: "Run", i: PlayCircle, c: "bg-emerald-500" },
+                                                { t: "Investigate", i: SearchCode, c: "bg-blue-500" },
+                                                { t: "Modify", i: Pencil, c: "bg-purple-500" },
+                                                { t: "Make", i: Cpu, c: "bg-rose-500" }
+                                            ].map((item, i) => (
+                                                <div key={i} className="flex items-center gap-3 p-2.5 bg-white rounded-xl shadow-sm border border-gray-100">
+                                                    <div className={`w-7 h-7 ${item.c} text-white rounded-lg flex items-center justify-center flex-shrink-0`}>
+                                                        <item.i size={14} />
+                                                    </div>
+                                                    <p className="text-xs font-black text-gray-700">{i + 1}. {item.t}</p>
+                                                </div>
+                                            ))}
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
 
-                            <div className="mt-6 flex justify-end">
-                                <button
-                                    onClick={() => setShowInstructions(false)}
-                                    className="px-4 py-2 bg-[#0F828C] hover:bg-[#0d6d74] text-white rounded-xl font-bold text-md transition-all shadow-lg shadow-emerald-100 flex items-center gap-2 active:scale-95"
-                                >
-                                     MULAI <ArrowRight size={20} />
-                                </button>
+                                <div className="mt-8 flex justify-end">
+                                    <button
+                                        onClick={() => setShowInstructions(false)}
+                                        className="group px-6 py-3 bg-[#0F828C] hover:bg-[#0d6d74] text-white rounded-2xl font-black text-sm transition-all shadow-lg flex items-center gap-2 active:scale-95"
+                                    >
+                                        MULAI SEKARANG <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     </div>
-                ) : (
-
-                    <div className="animate-in fade-in slide-in-from-bottom-4 duration-700">
-                        <div className="mb-6 flex justify-start">
-                            <Link 
-                                href="/siswa/courseSiswa" 
-                                className="group flex items-center gap-2 px-3 py-2 bg-gray-500 border border-gray-200 text-white rounded-xl text-[11px] font-bold uppercase tracking-widest hover:bg-gray-200 hover:text-black transition-all shadow-sm"
-                            >
-                                <ArrowLeft size={16} className="group-hover:-translate-x-1 transition-transform" />
-                                Kembali ke List Materi
+               ) : (
+                    /* MAIN CONTENT - OPTIMAL 3 KOLOM */
+                    <div className="animate-in fade-in duration-700 max-w-6xl mx-auto">
+                        
+                        {/* Header Ringkas */}
+                        <div className="mb-8 flex flex-col md:flex-row md:items-end justify-between gap-4">
+                            <div className="text-left">
+                                <h1 className="text-2xl font-black text-gray-900 tracking-tight">Aktivitas yang akan dipelajari </h1>
+                                <p className="text-gray-500 text-m font-medium">
+                                    Pada Materi <span className="text-blue-600 font-bold">{course.title}</span>
+                                </p>
+                            </div>
+                            
+                            <Link href="/siswa/courseSiswa" className="flex items-center gap-1.5 text-gray-400 hover:text-black transition-colors font-bold text-[10px] tracking-widest uppercase">
+                                <ArrowLeft size={14} /> Kembali
                             </Link>
                         </div>
 
-                        <div className="mb-10 text-left">
-                            <h1 className="text-3xl font-black text-black uppercase tracking-tighter">
-                                Materi : <span className="text-blue-600">{course.title}</span>
-                            </h1>
-                            <p className="text-gray-500 mt-2 font-medium">
-                                Selesaikan tahapan secara berurutan untuk menguasai materi ini.
-                            </p>
-                        </div>
-                        
-                        <div className="space-y-4">
+                        {/* Grid Card Layout - 3 Kolom Responsif */}
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
                             {steps.map((step, index) => {
                                 const isFirstStep = index === 0;
                                 const previousStep = steps[index - 1];
                                 const isUnlocked = isFirstStep || progress[previousStep];
                                 const isCompleted = progress[step];
+                                const IconComponent = stepIcons[index];
 
                                 return (
                                     <div 
                                         key={step} 
-                                        className={`group relative flex items-center p-5 rounded-[25px] border-2 transition-all duration-300 ${
+                                        className={`relative flex flex-col justify-between p-6 rounded-[32px] border-2 transition-all duration-300 min-h-[220px] ${
                                             isUnlocked 
-                                            ? 'border-[#F7CA89] bg-white shadow-sm hover:shadow-md' 
-                                            : 'border-grey-100 bg-gray-50 opacity-70'
+                                            ? 'border-gray-100 bg-white shadow-sm hover:shadow-md hover:-translate-y-1' 
+                                            : 'border-gray-50 bg-gray-50/50 opacity-60'
                                         }`}
                                     >
-                                        <div className={`flex-shrink-0 w-14 h-14 rounded-2xl flex items-center justify-center transition-colors ${
-                                            isCompleted 
-                                            ? 'bg-emerald-500 text-white' 
-                                            : isUnlocked 
-                                            ? 'bg-[#F7CA89]/10 text-[#F7CA89]' 
-                                            : 'bg-gray-200 text-gray-400'
-                                        }`}>
-                                            {isCompleted ? (
-                                                <CheckCircle2 className="w-7 h-7" />
-                                            ) : isUnlocked ? (
-                                                <Monitor className="w-7 h-7" />
-                                            ) : (
-                                                <Lock className="w-6 h-6" />
-                                            )}
-                                        </div>
-
-                                        <div className="ml-6 flex-grow text-left">
-                                            <div className="flex flex-col">
-                                                <span className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 mb-1">
-                                                    Tahap 0{index + 1}
-                                                </span>
-                                                <h3 className={`text-lg font-bold uppercase tracking-tight ${
-                                                    isUnlocked ? 'text-gray-800' : 'text-gray-400'
+                                        <div>
+                                            <div className="flex justify-between items-start mb-4">
+                                                {/* Icon Lebih Kecil */}
+                                                <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${
+                                                    isCompleted ? 'bg-emerald-50 text-emerald-500' : 'bg-blue-50 text-blue-500'
                                                 }`}>
-                                                    {step}
-                                                </h3>
-                                                <div className="mt-2 flex items-center gap-2">
-                                                    {(() => {
-                                                        const IconComponent = stepIcons[index];
-                                                        return (
-                                                            <IconComponent 
-                                                                size={18} 
-                                                                className={`${isUnlocked ? 'text-indigo-500' : 'text-gray-300'}`} 
-                                                            />
-                                                        );
-                                                    })()}
-
-                                                    <p className={`text-sm font-medium leading-tight ${
-                                                        isUnlocked ? 'text-blue-600' : 'text-gray-400'
-                                                    }`}>
-                                                        { deskripsiTahap[index]}
-                                                    </p>
+                                                    <IconComponent size={20} strokeWidth={2.5} />
                                                 </div>
+
+                                                {isCompleted && (
+                                                    <span className="bg-emerald-100 text-emerald-600 px-3 py-1 rounded-full text-[8px] font-black tracking-widest uppercase">
+                                                        SELESAI
+                                                    </span>
+                                                )}
                                             </div>
+
+                                            <h3 className={`text-lg font-black mb-1.5 capitalize ${isUnlocked ? 'text-gray-800' : 'text-gray-400'}`}>
+                                                {step}
+                                            </h3>
+                                            
+                                            {/* Deskripsi Lebih Ringkas */}
+                                            <p className="text-gray-500 text-[12px] leading-relaxed font-medium line-clamp-2">
+                                                {deskripsiTahap[index]}
+                                            </p>
                                         </div>
 
-                                        <div className="ml-4">
+                                        {/* Bagian Bawah */}
+                                        <div className="mt-4 pt-4 border-t border-gray-50 flex justify-end items-center">
                                             {isUnlocked ? (
                                                 <Link 
                                                     href={`/siswa/courseSiswa/showPrimm/${course.id}/${step}`}
-                                                    className={`flex items-center justify-center w-12 h-12 rounded-full transition-all ${
-                                                        isCompleted 
-                                                        ? 'bg-emerald-50 text-emerald-600 hover:bg-emerald-100' 
-                                                        : 'bg-[#0F828C] text-white hover:bg-[#0d6d74] shadow-lg shadow-emerald-100'
-                                                    }`}
+                                                    className="text-blue-600 font-black text-[11px] hover:text-blue-800 transition-all flex items-center gap-1 group"
                                                 >
-                                                    <ChevronRight className="w-6 h-6" />
+                                                    {isCompleted ? 'LIHAT LAGI' : 'BELAJAR'}
+                                                    <ChevronRight className="group-hover:translate-x-0.5 transition-transform" size={14} />
                                                 </Link>
                                             ) : (
-                                                <div className="w-12 h-12 flex items-center justify-center text-gray-300">
-                                                    <Lock className="w-5 h-5" />
+                                                <div className="flex items-center gap-1 text-gray-300 font-bold text-[10px] uppercase tracking-widest">
+                                                    <Lock size={12} />
                                                 </div>
                                             )}
                                         </div>

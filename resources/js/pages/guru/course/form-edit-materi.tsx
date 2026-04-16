@@ -97,7 +97,7 @@ const FormEditMateri: React.FC<Props> = ({ isOpen, onClose, categories, course }
             <button 
               type="submit" 
               disabled={processing}
-              className="px-6 py-2 bg-blue-600 text-white rounded-lg font-bold hover:bg-blue-700 shadow-lg disabled:opacity-50"
+              className="px-4 py-2 bg-blue-600 text-white rounded-lg font-bold hover:bg-blue-700 shadow-lg disabled:opacity-50"
             >
               {processing ? 'Menyimpan...' : 'Simpan Perubahan'}
             </button>

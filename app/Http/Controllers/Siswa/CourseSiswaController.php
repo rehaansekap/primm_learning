@@ -54,60 +54,86 @@ class CourseSiswaController extends Controller
     }
 
     public function showPrimm($id, $step)
-    {
-        $course = Course::with(['primms.questions'])->findOrFail($id);
-        $primmData = $course->primms->groupBy('tahap');
-        $userId = Auth::id();
+{
+    $course = Course::with(['primms.questions'])->findOrFail($id);
+    $primmData = $course->primms->groupBy('tahap');
+    $userId = Auth::id();
 
-        $existingAnswers = \App\Models\StudentAnswer::where('user_id', $userId)
-            ->whereHas('question.primm', function($query) use ($id) {
-                $query->where('course_id', $id);
-            })
-            ->pluck('jawaban_siswa', 'primm_question_id'); 
+    $stepsToFetch = [$step];
+    if ($step === 'run') {
+        $stepsToFetch[] = 'predict';
+    }
 
-         $isAllFinished = DB::table('course_progress')
+    $existingAnswersData = \App\Models\StudentAnswer::where('user_id', $userId)
+        ->whereHas('question.primm', function($query) use ($id, $stepsToFetch) {
+            $query->where('course_id', $id)
+                  ->whereIn('tahap', $stepsToFetch); 
+        })
+        ->get()
+        ->keyBy('primm_question_id'); 
+
+    $isAllFinished = DB::table('course_progress')
         ->where('user_id', $userId)
         ->where('course_id', $id)
         ->exists();    
 
-        return Inertia::render('siswa/courseSiswa/showPrimm', [
-
+    return Inertia::render('siswa/courseSiswa/showPrimm', [
         'course' => [
             'id' => $course->id,
             'title' => $course->title,
-            'description' => $course->description, 
-            'link' => $course->link,
-            'file' => $course->file,
+            'description' => $course->description,
+            'link' => $course->link, 
             'link_drive' => $course->link_drive,
         ],
         'primm' => $primmData,
-        'activeStepFromUrl' => $step,
-        'existingAnswers' => $existingAnswers,
+        'activeStepFromUrl' => $step, 
+        'existingAnswers' => $existingAnswersData, 
         'isAllFinished' => $isAllFinished
     ]);
-    }
+}
 
     public function saveProgress(Request $request)
-    {
-        $request->validate(['jawaban' => 'required|array']);
+{
+    $request->validate([
+        'jawaban'    => 'required|array',
+        'tahap'      => 'required|string',
+        'kode_siswa' => 'nullable|string'
+    ]);
 
-        try {
-            $userId = Auth::id();
-            
-            collect($request->input('jawaban'))->each(function ($teks, $questionId) use ($userId) {
-                if (!empty($teks)) {
-                    StudentAnswer::updateOrCreate(
-                        ['user_id' => $userId, 'primm_question_id' => $questionId],
-                        ['jawaban_siswa' => $teks]
-                    );
+    try {
+        $userId = Auth::id();
+        $kodeSiswa = $request->kode_siswa;
+        $tahapAktif = $request->tahap;
+
+        DB::transaction(function () use ($request, $userId, $kodeSiswa, $tahapAktif) {
+
+            $isCodingStep = in_array($tahapAktif, ['modify', 'make']);
+
+            foreach ($request->input('jawaban') as $questionId => $teks) {
+
+                $dataToUpdate = [
+                    'jawaban_siswa' => $teks ?? '',
+                ];
+
+                if ($isCodingStep) {
+                    $dataToUpdate['kode_program'] = $kodeSiswa;
                 }
-            });
 
-            return back()->with('success', 'Jawaban terkunci dan pembahasan terbuka!');
-        } catch (\Exception $e) {
-            return back()->with('error', 'Gagal: ' . $e->getMessage());
-        }
+                \App\Models\StudentAnswer::updateOrCreate(
+                    [
+                        'user_id' => $userId, 
+                        'primm_question_id' => $questionId
+                    ],
+                    $dataToUpdate
+                );
+            }
+        });
+
+        return back()->with('success', 'Progress berhasil disimpan!');
+    } catch (\Exception $e) {
+        return back()->with('error', 'Gagal menyimpan: ' . $e->getMessage());
     }
+}
 
     public function listPrimm($id)
     {

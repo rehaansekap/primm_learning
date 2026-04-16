@@ -1,89 +1,47 @@
 import React, { useState, useEffect } from "react";
-import { Head, router } from '@inertiajs/react';
-import { 
-    ArrowRight,ArrowLeft, CheckCircle2, Code2, BookOpen, ExternalLink, Lightbulb, Search, Download
-} from "lucide-react";
-import AppLayout from '@/layouts/app-layout';
+import { Head, router, Link } from '@inertiajs/react'; 
+import { ArrowRight, CheckCircle2, Code2, Play, ArrowLeft, BookOpen, ExternalLink, Search, X, Lightbulb } from "lucide-react";
+import CodeMirror from '@uiw/react-codemirror';
+import { python } from '@codemirror/lang-python';
+import { vscodeDark } from '@uiw/codemirror-theme-vscode';
+import ChatAI from '../../chatAi';
+import { usePage } from '@inertiajs/react';
+import { useVoice } from '@/hooks/useVoice';
 
-interface Question { id: number; 
+interface Question { 
+    id: number; 
     pertanyaan: string; 
     pembahasan: string; 
+    student_answers?: Array<{
+        jawaban_siswa: string;
+        kode_program: string;
+    }>;
 }
-
-interface PrimmActivity { 
-    id: number; 
-    tahap: string; 
-    gambar: string | null; 
-    link_colab: string | null; 
-    questions: Question[]; 
-}
-interface PrimmData { 
-    [key: string]: 
-    PrimmActivity[] | undefined; 
-}
-interface Course { 
-    id: number;
-    title: string; 
-    description: string; 
-    link?: string; 
-    file?: string; 
-    link_drive?: string; 
-}
-interface Props { 
-    course: Course; 
-    primm: PrimmData; 
-    activeStepFromUrl?: string; 
-    existingAnswers?: {[key: number]: string};
-    isAllFinished: boolean;
-}
+interface PrimmActivity { id: number; tahap: string; gambar: string | null; kode_program: string | null; questions: Question[]; }
+interface PrimmData { [key: string]: PrimmActivity[] | undefined; }
+interface Course { id: number; title: string; description: string; link?: string; file?: string; link_drive?: string; }
+interface Props { course: Course; primm: PrimmData; activeStepFromUrl?: string; existingAnswers?: { [key: number]: string }; isAllFinished: boolean; }
 
 export default function ShowPrimm({ course, primm, activeStepFromUrl, existingAnswers, isAllFinished }: Props) {
-    console.log("Apakah Link Drive Ada?", course.link_drive);
-console.log("Apakah Status Selesai?", isAllFinished);
     const steps = ["predict", "run", "investigate", "modify", "make"];
-    const initialStepIndex = activeStepFromUrl ? steps.indexOf(activeStepFromUrl.toLowerCase()) : 0;
-    const [currentStep, setCurrentStep] = useState<number>(initialStepIndex !== -1 ? initialStepIndex : 0);
-    const [answers, setAnswers] = useState<{[key: number]: string}>({});
-    const activeStep = steps[currentStep];
-    const [subView, setSubView] = useState<'menu' | 'materi' | 'aktivitas'>('aktivitas');
-    const [openExplatantions, setOpenExplanations] = useState<number[]>([]);
+    const initialStep = activeStepFromUrl ? steps.indexOf(activeStepFromUrl.toLowerCase()) : 0;
+    const [currentStep, setCurrentStep] = useState<number>(initialStep !== -1 ? initialStep : 0);
+    const [currentActivityIdx, setCurrentActivityIdx] = useState(0);
+    const [activeQuestionIdx, setActiveQuestionIdx] = useState(0);
+    const [isBlockSubmitted, setIsBlockSubmitted] = useState(false); 
+    const [subView, setSubView] = useState<'aktivitas' | 'materi'>('aktivitas');
+    const [answers, setAnswers] = useState<{ [key: number]: string }>(existingAnswers || {});
+    const [editorCodes, setEditorCodes] = useState<{ [key: number]: string }>({});
+    const [openExplanations, setOpenExplanations] = useState<number[]>([]);
     const [showSuccessModal, setShowSuccessModal] = useState(false);
-
-    const toggleExplanation = (id: number) => {
-        setOpenExplanations(prev => 
-            prev.includes(id) ? prev.filter(item => item !== id) : [...prev, id]
-        );
-    };
-
-    useEffect(() => { 
-    setSubView('aktivitas'); 
-    }, [activeStep]);
-
-    useEffect(() => {
-        if (activeStepFromUrl) {
-            const idx = steps.indexOf(activeStepFromUrl.toLowerCase());
-            if (idx !== -1) setCurrentStep(idx);
-        }
-    }, [activeStepFromUrl]);
-
-    useEffect(() => {
-        if (existingAnswers) {
-            setAnswers(existingAnswers);
-        }
-    }, [activeStep, existingAnswers]);
-
-    useEffect(() => {
-        if (existingAnswers) {
-            const savedIds = Object.keys(existingAnswers).map(Number);
-            
-            if (savedIds.length > 0) {
-                setOpenExplanations(prev => {
-                    const newIds = savedIds.filter(id => !prev.includes(id));
-                    return [...prev, ...newIds];
-                });
-            }
-        }
-    }, [existingAnswers]); 
+    const [pyodide, setPyodide] = useState<any>(null);
+    const [pyOutput, setPyOutput] = useState<{ [key: number]: string }>({});
+    const activeStep = steps[currentStep];
+    const activities = primm[activeStep] || [];
+    const act = activities[currentActivityIdx];
+    const [isRunning, setIsRunning] = useState<number | null>(null);
+    const [isReviewMode, setIsReviewMode] = useState(false);
+    const { speak } = useVoice();
 
     const renderEmbedMedia = (url: string): string => {
         if (!url) return '';
@@ -95,394 +53,593 @@ console.log("Apakah Status Selesai?", isAllFinished);
         return `<div class="p-10 bg-gray-50 rounded-[30px] text-center border-2 border-dashed border-gray-200"><p class="text-xs font-bold text-gray-400 uppercase mb-2">Media Eksternal</p><a href="${url}" target="_blank" rel="noopener noreferrer" class="text-blue-600 underline font-bold flex items-center justify-center gap-2">Buka Media di Tab Baru <ExternalLink size={14} /></a></div>`;
     };
 
-    const parseQuestionText = (text: string) => {
-        try {
-            if (typeof text === 'string' && text.trim().startsWith('{')) {
-                const parsed = JSON.parse(text);
-                return parsed.teks || text;
+    const getPastPredictAnswer = () => {
+        if (activeStep !== 'run' || !primm['predict']) return null;
+
+        const predictActivity = primm['predict'][currentActivityIdx];
+        if (!predictActivity || !predictActivity.questions.length) return null;
+
+        const firstPredictQId = predictActivity.questions[0].id;
+        const savedData = (existingAnswers as any)?.[firstPredictQId];
+
+        if (!savedData) return null;
+
+        return typeof savedData === 'object' ? savedData.jawaban_siswa : savedData;
+    };
+
+    const pastPredictAnswer = getPastPredictAnswer();
+
+    useEffect(() => {
+        if (activeStepFromUrl) {
+            const index = steps.indexOf(activeStepFromUrl.toLowerCase());
+            if (index !== -1) {
+                setCurrentStep(index);
+                setCurrentActivityIdx(0);
+                setActiveQuestionIdx(0);
+                setSubView('aktivitas');
+                setPyOutput({});
+                setOpenExplanations([]);
             }
-            return text;
-        } catch (e) { return text; }
-    };
+        }
+    }, [activeStepFromUrl]); 
 
-    const handleAnswerChange = (questionId: number, value: string) => {
-        setAnswers(prev => ({ ...prev, [questionId]: value }));
-    };
+    useEffect(() => {
+        const currentAct = activities[currentActivityIdx];
+        if (!currentAct) return;
 
-    const activities = primm[activeStep] || [];
+        const initialCodes: { [key: number]: string } = {};
+        
+        activities.forEach((item: PrimmActivity, idx: number) => {
+            const firstQId = item.questions[0]?.id;
+            const savedData = (existingAnswers as any)?.[firstQId];
+
+            if (['modify', 'make'].includes(item.tahap) && savedData?.kode_program) {
+                initialCodes[idx] = savedData.kode_program; 
+            } else {
+
+                initialCodes[idx] = item.kode_program || "";
+            }
+        });
+
+        const initialAnswers: { [key: number]: string } = {};
+        if (existingAnswers) {
+            Object.keys(existingAnswers).forEach((key) => {
+                const data = (existingAnswers as any)[key];
+                if (typeof data === 'object' && data !== null) {
+                    initialAnswers[parseInt(key)] = data.jawaban_siswa || "";
+                } else {
+                    initialAnswers[parseInt(key)] = data;
+                }
+            });
+
+            const currentQuestionIds = currentAct.questions.map(q => q.id);
+            const isAlreadyAnswered = currentQuestionIds.length > 0 && 
+                currentQuestionIds.every(id => !!(existingAnswers as any)[id]);
+
+            setIsBlockSubmitted(isAlreadyAnswered);
+
+            if (isAlreadyAnswered) {
+                setOpenExplanations(currentQuestionIds);
+            } else {
+                setOpenExplanations([]);
+            }
+        }
+
+        setEditorCodes(initialCodes);
+        setAnswers(initialAnswers);
+
+    }, [activeStep, currentActivityIdx, activities, existingAnswers]);
+
+    useEffect(() => {
+        if (activeStep === 'predict' && !isReviewMode) {
+            
+            const pesanSambutan = "Kamu masuk pada halaman memprediksi program. Silakan amati kode yang ada dan jawab pertanyaan prediksi dengan jelas.";
+            const timer = setTimeout(() => {
+                if (activeStep === 'predict') {
+                    window.speechSynthesis.cancel(); 
+                    speak(pesanSambutan);
+                }
+            }, 500); 
+            return () => {
+                clearTimeout(timer);
+            };
+        }
+    }, [activeStep]); 
+
+    useEffect(() => {
+        if (isReviewMode && activeStep === 'investigate' && act?.questions[activeQuestionIdx]) {
+            
+            const teksPembahasan = act.questions[activeQuestionIdx].pembahasan;
+
+            const timer = setTimeout(() => {
+                speak(`${teksPembahasan}`);
+            }, 500);
+
+            return () => {
+                clearTimeout(timer);
+                window.speechSynthesis.cancel(); 
+            };
+        }
+    }, [activeQuestionIdx, isReviewMode, activeStep]);
+
+    useEffect(() => {
+        async function initPy() {
+            if ((window as any).loadPyodide && !pyodide) {
+                try {
+                    const py = await (window as any).loadPyodide({ indexURL: "https://cdn.jsdelivr.net/pyodide/v0.25.0/full/" });
+                    setPyodide(py);
+                } catch (e) { console.error(e); }
+            }
+        }
+        initPy();
+    }, [pyodide]);
+
+    useEffect(() => {
+        if (showSuccessModal) {
+            window.speechSynthesis.cancel();
+
+            const pesanSukses = "Horeee! Pembelajaran telah selesai. Silakan unduh materi untuk belajar di rumah, lalu kembali ke halaman materi untuk melihat status pembelajaran ini menjadi selesai.";
+
+            const timer = setTimeout(() => {
+                speak(pesanSukses);
+            }, 1000);
+
+            return () => clearTimeout(timer);
+        }
+    }, [showSuccessModal]);
+
+    const runPythonCode = async (actIdx: number, code: string) => {
+        if (!pyodide) return; 
+        setIsRunning(actIdx);
+
+        let fullLog = ""; 
+
+        try {
+            const handlePythonInput = (message: string) => {
+                const userInput = prompt(message);
+                const value = userInput !== null ? userInput : "";
+
+                fullLog += `${message}${value}\n`;
+
+                setPyOutput(prev => ({ ...prev, [actIdx]: fullLog }));
+                
+                return value;
+            };
+
+            pyodide.globals.set("internal_input_js", handlePythonInput);
+
+            await pyodide.runPythonAsync(`
+                import sys, io
+                import builtins
+
+                # Pengalihan Print
+                stdout_buffer = io.StringIO()
+                sys.stdout = stdout_buffer
+
+                # Gunakan lambda agar memanggil fungsi JS kita
+                builtins.input = lambda msg="": internal_input_js(msg)
+            `);
+
+            await pyodide.runPythonAsync(code);
+
+            const finalStdout = pyodide.runPython("sys.stdout.getvalue()");
+            fullLog += finalStdout;
+
+            setPyOutput(prev => ({ ...prev, [actIdx]: fullLog || "Program selesai running." }));
+            
+        } catch (err: any) {
+            setPyOutput(prev => ({ ...prev, [actIdx]: fullLog + "\nError: " + err.message }));
+        } finally { 
+                setIsRunning(null); 
+        }
+    };
 
     const handleFinalComplete = () => {
         if (isAllFinished) {
-            setShowSuccessModal(true); 
+            setShowSuccessModal(true);
             return;
         }
-
         router.post(`/siswa/courseSiswa/complete/${course.id}`, {}, {
             onSuccess: () => {
+                window.speechSynthesis.cancel();
                 setShowSuccessModal(true);
             },
-            onError: (errors) => {
-                alert(errors.message || "Ada tahap yang belum lengkap.");
-            }
+            onError: (errors: any) => {
+                alert(errors?.error || "Gagal menyelesaikan materi. Pastikan semua tahap sudah terisi.");
+            },
+            preserveScroll: true
         });
-    };
+    }; 
 
-    const handleSaveAndNext = () => {
-        if (isAllFinished) {
-            if (currentStep < steps.length - 1) {
-                const nextStepIndex = currentStep + 1;
-                router.visit(`/siswa/courseSiswa/showPrimm/${course.id}/${steps[nextStepIndex]}`);
-            } else {
-                handleFinalComplete();
+        const handleSaveAndNext = () => {
+        if (!act) return;
+        const currentQuestion = act.questions[activeQuestionIdx];
+        const isAnswered = !!(existingAnswers as any)?.[currentQuestion.id];
+        
+        const isLastBlockInStep = currentActivityIdx === activities.length - 1;
+        const isLastQuestionInBlock = activeQuestionIdx === act.questions.length - 1;
+        const isFinalQuestionOfStep = isLastBlockInStep && isLastQuestionInBlock;
+
+        if (!isAnswered) {
+            const isCodingStep = ['modify', 'make'].includes(activeStep);
+            const currentAnswer = answers[currentQuestion.id];
+
+            if (!isCodingStep && (!currentAnswer || currentAnswer.trim() === "")) {
+                alert("Harap isi jawabanmu terlebih dahulu.");
+                return;
             }
-            return; 
-        }
 
-        const currentQuestions = activities.flatMap(act => act.questions.map(q => q.id));
-        const isAllAnswered = currentQuestions.every(id => answers[id] && answers[id].trim() !== "");
-
-        if (!isAllAnswered) {
-            alert("Ups! Kamu harus mengisi semua jawaban di tahap ini sebelum lanjut.");
-            return;
-        }
-
-        const isAlreadySaved = currentQuestions.every(id => !!existingAnswers?.[id]);
-
-        if (isAlreadySaved) {
-            if (currentStep < steps.length - 1) {
-                const nextStepIndex = currentStep + 1;
-                router.visit(`/siswa/courseSiswa/showPrimm/${course.id}/${steps[nextStepIndex]}`);
-            } else {
-                handleFinalComplete();
-            }
-        } else {
             router.post('/siswa/courseSiswa/saveProgress', {
                 course_id: course.id,
                 tahap: activeStep,
-                jawaban: answers 
+                jawaban: { [currentQuestion.id]: currentAnswer || "" },
+                kode_siswa: isCodingStep ? (editorCodes[currentActivityIdx] || "") : null 
             }, {
-                preserveScroll: true, 
+                preserveScroll: true,
                 onSuccess: () => {
-                    alert("Jawaban tersimpan! Silakan cek pembahasan yang muncul.");
+                    if (!isLastQuestionInBlock) {
+                        setActiveQuestionIdx(prev => prev + 1);
+                    } else if (!isLastBlockInStep) {
+                        setActiveQuestionIdx(0);
+                        setCurrentActivityIdx(prev => prev + 1);
+                    }
                 }
             });
+            return;
+        }
+
+        if (activeStep === 'predict') {
+            if (!isLastQuestionInBlock) {
+                setActiveQuestionIdx(prev => prev + 1);
+            } else if (!isLastBlockInStep) {
+                setActiveQuestionIdx(0);
+                setCurrentActivityIdx(prev => prev + 1);
+            } else {
+                window.speechSynthesis.cancel();
+                speak("Prediksi selesai! Sekarang mari kita buktikan dengan menjalankan kodenya. Silakan klik tombol RUN, lalu bandingkan hasilnya dengan prediksimu sebelumnya.");
+                router.visit(`/siswa/courseSiswa/showPrimm/${course.id}/run`);
+            }
+        } 
+        else if (activeStep === 'run') {
+            if (!isLastQuestionInBlock) {
+                setActiveQuestionIdx(prev => prev + 1);
+            } else if (!isLastBlockInStep) {
+                setActiveQuestionIdx(0);
+                setCurrentActivityIdx(prev => prev + 1);
+            } else {
+                const nextStep = steps[currentStep + 1];
+                window.speechSynthesis.cancel();
+                speak(`Keren.Tahap RUN selesai. Yuk, kita bedah logikanya di tahap ${nextStep.toLowerCase()}!`);
+                router.visit(`/siswa/courseSiswa/showPrimm/${course.id}/${nextStep}`);
+            }
+        }
+        else {
+            if (isReviewMode) {
+                if (!isLastQuestionInBlock) {
+                    setActiveQuestionIdx(prev => prev + 1);
+                } else if (!isLastBlockInStep) {
+                    setActiveQuestionIdx(0);
+                    setCurrentActivityIdx(prev => prev + 1);
+                } else {
+                    setIsReviewMode(false);
+                    const nextStep = steps[currentStep + 1];
+                    
+                    if (nextStep) {
+                        window.speechSynthesis.cancel();
+                        speak(`Kalian keren bisa menyelesaikan tahap ${activeStep.toLowerCase()}. Sekarang tantangan berikutnya tahap ${nextStep.toLowerCase()}. Untuk menjawabnya silahkan ubah di editor nya langsung. Jika sudah menjawab silahkan bandingkan dengan pembahasan aslinya. Semangat!!`);
+                        router.visit(`/siswa/courseSiswa/showPrimm/${course.id}/${nextStep}`);
+                    } else {
+                        handleFinalComplete(); 
+                    }
+                }
+            } else {
+                if (!isLastQuestionInBlock) {
+                    setActiveQuestionIdx(prev => prev + 1);
+                } else if (!isLastBlockInStep) {
+                    setActiveQuestionIdx(0);
+                    setCurrentActivityIdx(prev => prev + 1);
+                } else {
+                    setIsReviewMode(true);
+                    setCurrentActivityIdx(0);
+                    setActiveQuestionIdx(0);
+                }
+            }
         }
     };
 
     return (
-        <AppLayout breadcrumbs={[{ title: course.title, href: '#' }]}>
-            <Head title={`Belajar PRIMM - ${course.title}`} />
-            <div className="min-h-screen bg-[#F8FAFC] p-4 md:p-10 font-sans text-gray-800">
-                <div className="max-w-4xl mx-auto">
-                    <div className="bg-white rounded-[20px] p-6 shadow-sm border border-gray-100 mb-8">
-                        <h1 className="text-2xl font-black text-gray-900 uppercase tracking-tighter leading-none">
-                            Tahap <span className="text-blue-600">{activeStep}</span>
-                        </h1>
-                        <p className="text-[12px] font-bold text-black uppercase tracking-[0.3em] mt-2">
-                            Materi: <span className="text-blue-600">{course.title}</span>
-                        </p>
-                    </div>
+        <div className=" h-screen w-full bg-[#F8FAFC] flex flex-col overflow-hidden">
+            <header className="h-20 flex-none bg-white border-b px-6 flex items-center justify-between shadow-sm z-10">
+                <div className="flex items-center gap-4">
+                    <div className="bg-blue-600 text-white px-3 py-1 rounded-lg font-black text-xs uppercase shadow-sm">PRIMM</div>
+                    <h1 className="font-bold text-gray-800 truncate">{course.title}</h1>
+                </div>
+                <div className="flex items-center gap-2 bg-gray-100 p-1 rounded-xl">
+                    {steps.map((s) => (
+                        <div key={s} className={`px-3 py-1 rounded-lg text-[10px] font-black uppercase ${s === activeStep ? 'bg-white text-blue-600 shadow-sm' : 'text-gray-400'}`}>
+                            {s}
+                        </div>
+                    ))}
+                </div>
+            </header>
 
-                    <div className="space-y-12" key={activeStep}>
-                        {(['investigate', 'modify', 'make'].includes(activeStep)) && subView === 'materi' ? (
-                            <div className=" bg-white p-10 rounded-[35px] shadow-sm border border-gray-100 animate-in fade-in duration-500">
-                                <div className="bg-blue-100 p-8 rounded-[35px] shadow-sm border border-gray-100">
-                                        <h3 className="text-[11px] font-black uppercase tracking-widest text-blue-500 flex items-center gap-2"><BookOpen size={14} /> Inti Materi</h3>
-                                        <div className="text-gray-600 leading-relaxed font-medium prose prose-slate max-w-none" dangerouslySetInnerHTML={{ __html: course.description }} />
-                                </div>
-                                <div className="prose prose-slate">
-                                    <h3 className="text-[11px] font-black uppercase tracking-widest text-blue-500 flex items-center gap-2 mt-4 pt-4 mb-4"> Silahkan pahami materi dibawah ini!</h3>
-                                    {course.link && <div className="max-w-2xl mx-auto mb-8 overflow-hidden rounded-[30px] justify-center" dangerouslySetInnerHTML={{ __html: renderEmbedMedia(course.link) }} />}
-                                    {course.file && (
-                                        <div className="mb-8 rounded-[35px] overflow-hidden border border-gray-100 shadow-sm bg-gray-50">
-                                            {course.file.endsWith('.pdf') ? <iframe src={`/storage/${course.file}`} className="w-full h-[500px] border-0" /> : <img src={`/storage/${course.file}`} className="w-full h-auto object-contain mx-auto" alt="Materi" />}
-                                        </div>
-                                    )}
-                                    
-                                    <div className="flex justify-end border-t border-gray-100 pt-10">
-                                        <button onClick={() => setSubView('aktivitas')} className="flex items-center justify-center gap-3 bg-gray-500 text-white px-6 py-3 rounded-2xl font-bold text-[12px] uppercase tracking-wider shadow-lg hover:text-black hover:bg-gray-200 transition-all group">
-                                            <ArrowLeft size={18} className="group-hover:-translate-x-1 transition-transform" /> <span>Kembali ke Aktivitas</span>
+            <main className="flex-1 flex overflow-hidden p-4 relative gap-4">
+                {subView === 'aktivitas' ? (
+                    <div className="w-full flex gap-4 animate-in fade-in duration-500 overflow-hidden">
+                        <section className="w-1/2 flex flex-col gap-4">
+                            <div className="flex flex-col flex-[3] min-h-0 bg-[#1e1e1e]  shadow-xl border border-gray-800 overflow-hidden">
+                                <div className="flex items-center justify-between px-4 py-2 bg-[#252526] border-b border-black/20">
+                                    <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest flex items-center gap-2">
+                                        <Code2 size={14} className="text-blue-400" /> main.py
+                                    </span>
+                                    {['run', 'modify', 'make'].includes(activeStep) && (
+                                        <button 
+                                            onClick={() => runPythonCode(currentActivityIdx, editorCodes[currentActivityIdx] || "")} 
+                                            disabled={isRunning !== null} 
+                                            className="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-1 rounded-lg text-[10px] font-bold flex items-center gap-2 transition-all active:scale-95 shadow-lg shadow-emerald-900/20"
+                                        >
+                                            <Play size={12} fill="currentColor"/> RUN
                                         </button>
-                                    </div>
+                                    )}
+                                </div>
+                                <div className="flex-1 overflow-hidden">
+                                    <CodeMirror 
+                                        key={`editor-${activeStep}-${currentActivityIdx}`}
+                                        value={editorCodes[currentActivityIdx] || ""} 
+                                        theme={vscodeDark} 
+                                        extensions={[python()]} 
+                                        readOnly={!['modify', 'make'].includes(activeStep) || isBlockSubmitted || isAllFinished} 
+                                        onChange={(val: string) => setEditorCodes(prev => ({ ...prev, [currentActivityIdx]: val }))} 
+                                        height="100%"
+                                        className="text-sm h-full"
+                                    />
                                 </div>
                             </div>
-                        ) : (
-                            <div className="space-y-12 animate-in fade-in duration-700">
-                                {['investigate', 'modify', 'make'].includes(activeStep) && (
-                                    <div className="flex mb-6">
-                                        <button 
-                                            onClick={() => setSubView('materi')}
-                                            className="flex items-center justify-center gap-3 bg-white border border-blue-600 text-blue-600 px-6 py-3 rounded-xl font-bold text-[11px] uppercase tracking-wider shadow-sm hover:bg-blue-50 transition-all"
-                                        >
-                                            <BookOpen size={16} /> <span>Pelajari Materi</span>
-                                        </button>
-                                    </div>
-                                )}
 
-                                {activities.map((act, idx) => (
-                                    <div key={act.id} className="space-y-10 animate-in fade-in duration-700">
-                                        {act.gambar && (
-                                            <div className="bg-white p-4 rounded-[15px] border border-gray-100 shadow-sm text-center">
-                                                <img 
-                                                    src={`/storage/${act.gambar}`} 
-                                                    className={`mx-auto object-contain transition-all duration-300 ${
-                                                        act?.tahap?.toLowerCase() === 'modify' 
-                                                        ? 'max-w-2xl w-full h-auto max-h-[100px]' 
-                                                        : act?.tahap?.toLowerCase() === 'run'
-                                                        ? 'max-w-full h-[150px]'
-                                                        : 'max-w-xs w-full h-auto max-h-[120px]' 
-                                                    }`} 
-                                                    alt="Code" 
-                                                />
+                            {['run', 'modify', 'make'].includes(activeStep) && (
+                                <div className="flex flex-col flex-[2] min-h-0 bg-black shadow-xl border border-gray-800 overflow-hidden animate-in slide-in-from-bottom duration-500">
+                                    <div className="px-4 py-2 bg-[#1a1a1a] border-b border-gray-800 flex items-center gap-2">
+                                        <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div>
+                                        <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest italic">Console Output</span>
+                                    </div>
+                                    <div className="flex-1 p-5 font-mono text-[13px] text-white overflow-y-auto custom-scrollbar relative">
+                                        {pyOutput[currentActivityIdx] ? (
+                                            <pre className="whitespace-pre-wrap animate-in fade-in duration-300">
+                                                {pyOutput[currentActivityIdx]}
+                                            </pre>
+                                        ) : (
+                                            <div className="absolute inset-0 flex items-top justify-between opacity-50 ml-4 pt-3">
+                                                <p className="text-[11px] uppercase tracking-[0.2em] text-white">
+                                                    Silahkan tekan tombol RUN, Output akan muncul di sini..
+                                                </p>
                                             </div>
                                         )}
+                                    </div>
+                                </div>
+                            )}
+                        </section>
 
-                                        <div className="space-y-8">
-                                            {act.questions && act.questions.map((q, qIdx) => (
-                                                <div key={q.id} className="bg-white rounded-[30px] border border-gray-300 shadow-sm overflow-hidden">
-                                                    
-                                                    <div className="bg-gray-100 p-6 flex items-center gap-5 border-b border-gray-100">
-                                                        <div className="w-10 h-10 rounded-full bg-blue-600 text-white flex items-center justify-center text-sm font-black flex-shrink-0 shadow-md shadow-blue-200">
-                                                            {idx + 1}{String.fromCharCode(97 + qIdx)}
-                                                        </div>
-                                                        <p className="text-[15px] text-justify font-bold text-gray-800 leading-relaxed whitespace-pre-line">
-                                                            {parseQuestionText(q.pertanyaan)}
+                        <section className="w-1/2 flex flex-col gap-4 overflow-y-auto pr-2 pb-32 custom-scrollbar">
+                            {['investigate', 'modify', 'make'].includes(activeStep) && (
+                                <button 
+                                    onClick={() => setSubView('materi')}
+                                    className="flex items-center gap-3 px-4 py-2.5 bg-white text-blue-600 rounded-xl border border-blue-100 font-black text-[11px] uppercase tracking-wider hover:bg-blue-50 transition-all shadow-sm w-fit"
+                                >
+                                    <BookOpen size={16} /> Pelajari Materi
+                                </button>
+                            )}
+
+                            {act && act.questions.length > 0 ? (
+                                <div className="space-y-4">
+                                    {act.gambar && (
+                                        <div className="bg-white p-3 border border-gray-200 shadow-sm rounded-2xl">
+                                            <img src={`/storage/${act.gambar}`} className="mx-auto max-h-[200px] object-contain rounded-xl" alt="Visual Aid" />
+                                        </div>
+                                    )}
+
+                                    {(() => {
+                                        const q = act.questions[activeQuestionIdx];
+                                        const isAnswered = !!(existingAnswers as any)?.[q.id];
+                                        const isCodingStep = ['modify', 'make'].includes(activeStep);
+                                        const isAllInBlockAnswered = act.questions.every(question => 
+                                            !!(existingAnswers as any)?.[question.id]
+                                        );
+
+                                        return (
+                                            <div key={q.id} className="bg-white rounded-[25px] border border-gray-200 shadow-sm overflow-hidden animate-in slide-in-from-right duration-500">
+                                                {/* Header Kartu Pertanyaan */}
+                                                <div className="bg-gray-50/50 p-6 border-b flex items-start gap-4">
+                                                    <div className="w-10 h-10 rounded-2xl bg-blue-600 text-white flex items-center justify-center text-sm font-black shrink-0 shadow-lg shadow-blue-100">
+                                                        {activeQuestionIdx + 1}
+                                                    </div>
+                                                    <div className="flex-1">
+                                                        <span className="text-[12px] font-black text-blue-500 uppercase tracking-widest block mb-1">Pertanyaan</span>
+                                                        <p className="text-[15px] font-bold text-gray-700 leading-relaxed whitespace-pre-wrap text-justify">
+                                                            {q.pertanyaan}
                                                         </p>
                                                     </div>
-                                                    
-                                                    <div className="p-8 space-y-6">
-                                                        <div className="relative">
-                                                            {activeStep === 'modify' || activeStep === 'make' ? (
-                                                                <div className="space-y-6">
-                                                                    
-                                                                    <div className="bg-[#FFFBEB] border-l-4 border-[#F59E0B] p-6 rounded-r-[20px] shadow-sm animate-in fade-in duration-500">
-                                                                        <div className="flex items-center gap-3 mb-4">
-                                                                            <span className="text-xl">⚠️</span>
-                                                                            <h4 className="text-[14px] font-black text-[#92400E] uppercase tracking-tight">
-                                                                                PENTING: Baca Petunjuk Sebelum Mengerjakan
-                                                                            </h4>
-                                                                        </div>
-
-                                                                        <p className="text-[12px] text-[#B45309] font-medium mb-4 leading-relaxed">
-                                                                            Langkah ini WAJIB dilakukan sebelum memodifikasi dan mengumpulkan link. Tanpa ini, guru tidak bisa mengakses pekerjaan Anda.
-                                                                        </p>
-                                                                        
-                                                                        <div className="space-y-4">
-                                                                            <div className="bg-white border border-[#FEF3C7] rounded-[15px] p-5 shadow-inner">
-                                                                                <div className="flex items-center gap-2 mb-3">
-                                                                                    <Code2 size={16} className="text-[#F59E0B]" />
-                                                                                    <p className="text-[13px] font-black text-[#B45309] uppercase tracking-widest">Langkah Modifikasi Program:</p>
-                                                                                </div>
-                                                                                <ol className="text-[13px] text-[#92400E]/90 space-y-2 ml-4 list-decimal font-medium">
-                                                                                    <li>Klik tombol <strong className="text-blue-600">"Buka Modifikasi (pada tahap modify) dan Buat program (jika ditahap make)"</strong> yang berada di sebelah kiri button simpan.</li>
-                                                                                    <li>Setelah Google Colab terbuka, pilih menu <strong>"File"</strong> kemudian klik <strong>"Save a copy in Drive"</strong>.</li>
-                                                                                    <li><span className="text-red-600 font-bold underline">JANGAN</span> mengedit sebelum melakukan copy!</li>
-                                                                                    <li>Buka salinan file tersebut di <strong>tab baru</strong> untuk mulai mengerjakan.</li>
-                                                                                </ol>
-                                                                            </div>
-
-                                                                            <div className="bg-blue-50/50 border border-blue-100 rounded-[15px] p-5 shadow-inner">
-                                                                                <div className="flex items-center gap-2 mb-3">
-                                                                                    <Lightbulb size={16} className="text-blue-600" />
-                                                                                    <p className="text-[13px] font-black text-blue-700 uppercase tracking-widest">Langkah Pengumpulan Link:</p>
-                                                                                </div>
-                                                                                <ol className="text-[14px] text-blue-800 space-y-2 ml-4 list-decimal font-medium">
-                                                                                    <li>Ubah judul menjadi <strong>"nama kelompok_modify_judul materi"</strong></li>
-                                                                                    <li>Jika sudah selesai mengedit, klik tombol <strong className="text-blue-700">"Share"</strong> di pojok kanan atas Google Colab.</li>
-                                                                                    <li>Ubah akses dari "Restricted" menjadi <strong>"Anyone with the link"</strong>.</li>
-                                                                                    <li>Klik <strong>"Copy Link"</strong> dan tempelkan ke kotak link di bawah ini.</li>
-                                                                                    <li>Lalu, <strong>"Simpan"</strong></li>
-                                                                                </ol>
-                                                                            </div>
-                                                                        </div>
-                                                                    </div>
-                                                                    <div className="bg-[#F0FDF4] border-2 border-[#BBF7D0] p-6 rounded-[25px] shadow-sm">
-                                                                        <div className="flex items-center gap-2 mb-3 text-[#166534]">
-                                                                            <ExternalLink size={18} />
-                                                                            <span className="text-[12px] font-bold uppercase tracking-wider">Link Google Colab Anda:</span>
-                                                                        </div>
-                                                                        <input 
-                                                                            type="url" 
-                                                                            value={answers[q.id] || ''} 
-                                                                            onChange={(e) => handleAnswerChange(q.id, e.target.value)} 
-                                                                            readOnly={!!existingAnswers?.[q.id]} 
-                                                                            className={`w-full px-5 py-4 rounded-[15px] text-sm transition-all outline-none font-medium border-2 
-                                                                                ${!!existingAnswers?.[q.id] 
-                                                                                    ? 'bg-white/50 border-emerald-200 text-emerald-800 cursor-not-allowed' 
-                                                                                    : 'bg-white border-emerald-100 focus:border-emerald-500 text-emerald-900 shadow-inner'}`} 
-                                                                            placeholder="https://colab.research.google.com/drive/..." 
-                                                                        />
-                                                                    </div>
-                                                                </div>
-                                                            ) : (
-                                                                <div className="relative">
-                                                                    <div className={`w-full p-6 rounded-[25px] text-[14px] transition-all border-2 flex items-start 
-                                                                        ${!!existingAnswers?.[q.id] 
-                                                                            ? 'bg-[#F0FDF4] border-[#BBF7D0] text-[#166534]' 
-                                                                            : 'bg-[#F8FAFC] border-gray-100'}`}>
-                                                                        
-                                                                        {!!existingAnswers?.[q.id] && (
-                                                                            <CheckCircle2 size={18} className="text-[#10B981] mr-3 mt-0.5 flex-shrink-0" strokeWidth={3} />
-                                                                        )}
-
-                                                                        <textarea 
-                                                                            value={answers[q.id] || ''} 
-                                                                            onChange={(e) => handleAnswerChange(q.id, e.target.value)} 
-                                                                            readOnly={!!existingAnswers?.[q.id]} 
-                                                                            className={`w-full p-4 rounded-xl transition-all duration-300 
-                                                                                ${!!existingAnswers?.[q.id] 
-                                                                                    ? 'bg-emerald-50 border-emerald-200 text-emerald-800 cursor-not-allowed shadow-inner' 
-                                                                                    : 'bg-white border-gray-200 focus:border-blue-500 shadow-sm'
-                                                                                }`}
-                                                                            placeholder="Tuliskan jawabanmu di sini..." 
-                                                                        />
-
-                                                                        {!!existingAnswers?.[q.id] && (
-                                                                            <div className="absolute bottom-3 right-3">
-                                                                                <span className="text-[9px] bg-[#10B981] text-white font-black uppercase px-2.5 py-1 rounded-md shadow-sm">
-                                                                                    TERSIMPAN
-                                                                                </span>
-                                                                            </div>
-                                                                        )}
-                                                                    </div>
-                                                                </div>
-                                                            )}
-                                                        </div>
-                                                        
-
-                                                        {!!existingAnswers?.[q.id] && (
-                                                            <div className="flex justify-start animate-in fade-in slide-in-from-left-2 duration-500">
-                                                                <button 
-                                                                    type="button" 
-                                                                    onClick={() => toggleExplanation(q.id)}
-                                                                    className="flex items-center gap-2 text-[11px] font-black uppercase tracking-widest text-blue-600 hover:text-blue-800 transition-colors"
-                                                                >
-                                                                    {openExplatantions.includes(q.id) ? (
-                                                                        <> <ArrowLeft size={14} className="rotate-90" /> TUTUP PEMBAHASAN </>
-                                                                    ) : (
-                                                                        <> <ArrowRight size={14} /> LIHAT PEMBAHASAN </>
-                                                                    )}
-                                                                </button>
-                                                            </div>
-                                                        )}
-
-                                                        {openExplatantions.includes(q.id) && (
-                                                            <div className="p-6 bg-[#EFF6FF] border border-blue-500 rounded-[20px] animate-in slide-in-from-top-2 duration-300">
-                                                                <div className="flex items-start gap-4">
-                                                                    <div className="p-2.5 bg-white rounded-xl shadow-sm flex-shrink-0">
-                                                                        <Lightbulb size={18} className="text-blue-500" />
-                                                                    </div>
-                                                                    <div className="flex-1">
-                                                                        <p className="text-[14px] font-black uppercase tracking-widest text-blue-500 mb-1">Penjelasan</p>
-                                                                        <div className="text-[14px] text-black leading-relaxed font-medium">
-                                                                            {q.pembahasan && q.pembahasan.trim() !== "" ? q.pembahasan : "Maaf, guru belum memberikan pembahasan."}
-                                                                        </div>
-                                                                    </div>
-                                                                </div>
-                                                            </div>
-                                                        )}
-                                                    </div>
                                                 </div>
-                                            ))}
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
-                        )}
+
+                                                {activeStep === 'run' && pastPredictAnswer && (
+                                                    <div className="bg-emerald-50 border-l-4 border-emerald-400 p-4 rounded-r-2xl mb-4 animate-in fade-in zoom-in duration-300">
+                                                        <span className="text-[10px] font-black text-emerald-600 uppercase tracking-widest block mb-1">
+                                                            Jawaban Prediksi Anda Sebelumnya:
+                                                        </span>
+                                                        <p className="text-sm italic text-gray-700 leading-relaxed">
+                                                            "{pastPredictAnswer}"
+                                                        </p>
+                                                    </div>
+                                                )}
+
+                                                <div className="p-6 space-y-4">
+                                                    {!isCodingStep && (
+                                                        <div className="flex flex-col gap-2">
+                                                            <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest block">
+                                                                Jawaban:
+                                                            </span>
+                                                            <textarea 
+                                                                value={answers[q.id] || ''} 
+                                                                onChange={(e) => setAnswers(prev => ({ ...prev, [q.id]: e.target.value }))} 
+                                                                readOnly={isAnswered} 
+                                                                rows={4} 
+                                                                className={`w-full p-5 rounded-2xl border-2 transition-all outline-none whitespace-pre-wrap text-sm 
+                                                                    ${isAnswered 
+                                                                        ? 'bg-emerald-50/50 border-emerald-100 text-emerald-900' 
+                                                                        : 'bg-white border-gray-300 focus:border-blue-500 shadow-inner'}`} 
+                                                                placeholder="Tuliskan jawabanmu di sini..." 
+                                                            />
+                                                        </div>
+                                                    )}
+
+                                                    {isReviewMode && !['predict', 'run'].includes(activeStep) && (
+                                                        <div className="mt-4 p-6 bg-blue-50 border-l-4 border-blue-500 rounded-r-2xl animate-in slide-in-from-left duration-500">
+                                                            <div className="flex items-center gap-2 mb-2">
+                                                                <Lightbulb size={16} className="text-blue-600" />
+                                                                <span className="text-[12px] font-black text-blue-600 uppercase">
+                                                                     Pembahasan 
+                                                                </span>
+                                                            </div>
+                                                            <p className="text-sm text-gray-700 leading-relaxed text-justify whitespace-pre-wrap">
+                                                                {q.pembahasan}
+                                                            </p>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        );
+                                    })()}
+                                </div>
+                            ) : (
+                                <div className="h-64 flex items-center justify-center border-2 border-dashed rounded-[40px] text-gray-400 italic">
+                                    Pilih tahap untuk melihat soal.
+                                </div>
+                            )}
+                        </section>
                     </div>
+                ) : (
+                    <div className="fixed inset-0 z-[100] bg-slate-100 flex flex-col animate-in fade-in duration-300">
+                        <button 
+                            onClick={() => setSubView('aktivitas')}
+                            className="absolute top-6 right-8 z-[110] flex items-center gap-2 px-5 py-3 bg-white/90 backdrop-blur-md text-red-600 rounded-2xl font-black text-xs uppercase shadow-2xl border border-red-100 hover:bg-red-600 hover:text-white transition-all active:scale-95 group"
+                        >
+                            <X size={20} className="group-hover:rotate-90 transition-transform" /> 
+                            Tutup Materi
+                        </button>
+                        <div className="flex-1 w-full overflow-y-auto ">
+                            <div className="max-w-4xl mx-auto min-h-screen flex flex-col py-10 px-4 md:px-0">
+                                {course.link ? (
+                                        <div className="aspect-video w-full ">
+                                            <div 
+                                                className="w-full h-full"
+                                                dangerouslySetInnerHTML={{ __html: renderEmbedMedia(course.link) }} 
+                                            />
+                                        </div>
 
-                    {subView === 'aktivitas' && (
-                        <div className="flex flex-col md:flex-row justify-end items-center mt-12 mb-24 gap-4 w-full border-t border-gray-100 pt-10"> 
-
-                            <div className="flex flex-col md:flex-row items-center md:items-center justify-end gap-4 w-full md:w-auto">
-                                {(activeStep === 'modify' || activeStep === 'make') && activities.length > 0 && (
-                                    <div className="flex flex-col justify-end items-center md:items-end gap-2 w-full md:w-auto">
-                                        {!existingAnswers?.[activities[0].questions[0]?.id] && (
-                                            <a
-                                                href={activities[0].link_colab || '#'}
-                                                target="_blank"
-                                                rel="noopener noreferrer"
-                                                className="inline-flex items-center justify-center gap-2 bg-[#14B8A6] text-white px-6 py-3.5 rounded-xl font-bold text-[10px] uppercase tracking-widest hover:bg-[#0D9488] transition-all shadow-lg active:scale-95 w-full md:w-auto"
-                                            >
-                                                <Code2 size={16} />
-                                                <span>{activeStep === 'modify' ? 'Buka Modifikasi' : 'Buat Program'}</span>
-                                            </a>
+                                ) : course.file ? (
+                                    <div className="space-y-6">
+                                        {course.file.endsWith('.pdf') ? (
+                                            <div className="bg-white  shadow-2xl border border-gray-200 overflow-hidden h-[85vh]">
+                                                <iframe 
+                                                    src={`/storage/${course.file}#toolbar=0`} 
+                                                    className="w-full h-full border-0" 
+                                                />
+                                            </div>
+                                        ) : (
+                                            <div className="flex justify-center">
+                                                <img src={`/storage/${course.file}`} className="max-w-full h-auto  shadow-2xl border-4 border-white" />
+                                            </div>
                                         )}
                                     </div>
+                                ) : (
+                                    <div className="flex-1 flex flex-col items-center justify-center py-20 text-slate-400">
+                                        <Search size={48} className="opacity-10 mb-4" />
+                                        <p className="font-bold">Materi tidak ditemukan.</p>
+                                    </div>
                                 )}
-
-                                <button
-                                    type="button"
-                                    onClick={handleSaveAndNext}
-                                    className="flex items-center justify-center gap-2 bg-blue-600 text-white px-6 py-3 rounded-xl font-black text-[12px] uppercase tracking-widest shadow-xl shadow-blue-200 hover:bg-blue-700 transition-all active:scale-95 w-full md:w-auto"
-                                >
-                                    <span>
-                                        {isAllFinished 
-                                            ? (currentStep === steps.length - 1 ? 'Selesai & Kembali' : 'Lihat Berikutnya') 
-                                            : (() => {
-                                                const currentQuestions = activities.flatMap(act => act.questions.map(q => q.id));
-                                                const isSaved = currentQuestions.length > 0 && currentQuestions.every(id => !!existingAnswers?.[id]);
-                                                
-                                                if (isSaved) {
-                                                    return currentStep === steps.length - 1 ? 'Selesaikan Semua' : 'Lanjut ke Tahap Berikutnya';
-                                                }
-                                                return 'Simpan & Lihat Pembahasan';
-                                            })()
-                                        }
-                                    </span>
-                                    <ArrowRight size={16} />
-                                </button>
                             </div>
                         </div>
-                    )}
-
-                </div>
-            </div>
-
-            {showSuccessModal && (
-                <div className="fixed inset-0 z-[999] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-300">
-                    <div className="bg-white rounded-[40px] p-8 md:p-10 max-w-md w-full shadow-2xl text-center relative animate-in zoom-in duration-300">
-                        <div className="absolute top-0 left-0 w-full h-2 bg-[#0F828C] rounded-[30px] from-blue-500 to-emerald-500"></div>
-
-                        <div className="mb-6 inline-flex items-center justify-center w-20 h-20 bg-emerald-50 text-emerald-500 rounded-full">
-                            <CheckCircle2 size={48} strokeWidth={2.5} />
-                        </div>
-
-                        <h2 className="text-2xl font-black text-slate-900 uppercase tracking-tighter mb-2">
-                            Yeyyy Selesai!!
-                        </h2>
-                        <p className="text-slate-500 text-sm font-medium mb-8 leading-relaxed">
-                            Selamat! Kamu telah menuntaskan seluruh tantangan <span className="text-blue-600 font-bold">PRIMM</span> pada materi <span className="text-slate-800 font-bold">{course.title}</span> Silahkan unduh materi dulu sebelum kembali.
-                        </p>
-
-                        <div className="space-y-3 flex flex-col items-center"> 
-                            {course.link_drive && (
-                                <a
-                                    href={course.link_drive}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="flex items-center justify-center gap-3 bg-emerald-600 text-white px-9 py-3 rounded-[10px] font-black text-[11px] uppercase tracking-widest hover:bg-emerald-700 transition-all shadow-lg shadow-emerald-200 group w-fit" 
-                                   
-                                >
-                                    <Download size={16} className="group-hover:animate-bounce" />
-                                    <span>Unduh Materi (PDF)</span>
-                                </a>
-                            )}
-                            
-                            <button
-                                onClick={() => router.visit('/siswa/courseSiswa')}
-                                className="flex items-center justify-center gap-2 bg-blue-600 text-white px-4 py-3 rounded-[10px] font-black text-[11px] uppercase tracking-widest hover:bg-blue-700 transition-all shadow-lg shadow-blue-200 w-fit"
-                            
-                            >
-                                <ArrowLeft size={16} />
-                                <span>Kembali ke Daftar Materi</span>
-                            </button>
-                        </div>
-                        
                     </div>
+                )}
+            </main>
+
+           <footer className="h-20 flex-none bg-white border-t px-8 flex items-center justify-between z-10 shadow-lg">
+                <div className="flex flex-col">
+                    <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">
+                        Progres Belajar
+                    </span>
+                    <div className="flex items-center gap-3">
+                        <div className="text-xs font-bold text-blue-600 bg-blue-50 px-3 py-1 rounded-lg">
+                            Blok {currentActivityIdx + 1}
+                        </div>
+                        <span className="text-gray-300">•</span>
+                        <div className="text-xs font-bold text-gray-500">
+                            Soal {activeQuestionIdx + 1} dari {act?.questions.length || 0}
+                        </div>
+                    </div>
+                </div>
+
+                <div className="flex items-center gap-4 mr-24">
+                    <button 
+                        onClick={handleSaveAndNext} 
+                        className={`
+                            px-4 py-2 rounded-[15px] font-bold text-sm flex items-center gap-2 
+                            transition-all active:scale-95 shadow-lg
+                            ${!(existingAnswers as any)?.[act?.questions[activeQuestionIdx]?.id] 
+                                ? 'bg-emerald-600 hover:bg-emerald-700 shadow-emerald-100' 
+                                : isReviewMode ? 'bg-blue-600 hover:bg-blue-700' : 'bg-blue-600 hover:bg-blue-700 shadow-gray-100'}
+                            text-white
+                        `}
+                    >
+                        {(() => {
+                            const isAnswered = !!(existingAnswers as any)?.[act?.questions[activeQuestionIdx]?.id];
+                            const isFinalSoal = currentActivityIdx === activities.length - 1 && activeQuestionIdx === act.questions.length - 1;
+                            const isLastStep = currentStep === steps.length - 1; // Cek apakah ini tahap 'make'
+
+                            if (!isAnswered) return "Simpan Jawaban";
+
+                            if (['predict', 'run'].includes(activeStep) && isFinalSoal) {
+                                const nextTarget = activeStep === 'predict' ? 'RUN' : 'INVESTIGATE';
+                                return `Lanjut ke Tahap ${nextTarget}`;
+                            }
+
+                            if (isFinalSoal && !isReviewMode) {
+                                return "Lihat Pembahasan Tahap " + activeStep.toUpperCase();
+                            }
+
+                            if (isReviewMode) {
+                                if (isFinalSoal) {
+                                    return isLastStep ? "Selesaikan Keseluruhan" : "Lanjut Tahap Berikutnya";
+                                }
+                                return "Pembahasan Selanjutnya";
+                            }
+
+                            return "Lanjut ke Soal Berikutnya";
+                        })()}
+                    </button>
+                </div>
+            </footer>
+
+            {act?.questions?.length > 0 && ['investigate', 'modify', 'make'].includes(activeStep.toLowerCase()) && (
+                <div className="fixed bottom-14 right-15 z-[100] transition-all duration-500 ease-out animate-in fade-in slide-in-from-bottom-10">
+                    <ChatAI pertanyaanId={act.questions[0].id} />
                 </div>
             )}
 
-        </AppLayout>
+            {showSuccessModal && (
+                <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4 animate-in fade-in duration-300">
+                    <div className="bg-white rounded-[40px] p-10 max-w-md w-full text-center shadow-2xl relative">
+                        <div className="mb-6 inline-flex items-center justify-center w-20 h-20 bg-emerald-100 text-emerald-600 rounded-full"><CheckCircle2 size={48} /></div>
+                        <h2 className="text-2xl font-black text-gray-900 uppercase tracking-tight mb-2">Hore! Selesai</h2>
+                        <p className="text-gray-500 text-sm mb-8">Kamu telah menuntaskan tantangan PRIMM materi ini.</p>
+                        <div className="flex flex-col gap-3">
+                            {course.link_drive && (
+                                <a href={course.link_drive} target="_blank" className="flex items-center justify-center gap-2 bg-emerald-600 text-white py-4 rounded-2xl font-bold text-xs uppercase tracking-widest hover:bg-emerald-700 transition-all"><ExternalLink size={18} /> Unduh Materi Lengkap</a>
+                            )}
+                            <button onClick={() => router.visit('/siswa/courseSiswa')} className="bg-blue-600 text-white py-4 rounded-2xl font-bold text-xs uppercase tracking-widest hover:bg-blue-700 transition-all">Kembali ke halaman materi</button>
+                        </div>
+                    </div>
+                </div>
+            )}
+        </div>
     );
 }

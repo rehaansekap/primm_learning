@@ -31,7 +31,6 @@ export default function DaftarNilai({ students }: Props) {
                         <tr className="bg-gray-100 uppercase text-xs font-bold text-gray-600">
                             <th className="p-4 border">Nama Siswa</th>
                             <th className="p-4 border">Materi Selesai</th>
-                            <th className="p-4 border text-center">Fase Selesai</th>
                             <th className="p-4 border text-center">Rata-rata Nilai</th>
                             <th className="p-4 border text-center">Aksi</th>
                         </tr>
@@ -41,7 +40,6 @@ export default function DaftarNilai({ students }: Props) {
                             <tr key={student.user_id} className="hover:bg-gray-50">
                                 <td className="p-4 border font-medium">{student.user_name}</td>
                                 <td className="p-4 border text-center">{student.materi_selesai}</td>
-                                <td className="p-4 border text-center">{student.total_fase}</td>
                                 <td className="p-4 border text-center">{student.rata_rata_nilai ?? '-'}</td>
                                 <td className="p-4 border text-center">
                                     <Link 

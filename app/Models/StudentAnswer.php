@@ -12,6 +12,7 @@ class StudentAnswer extends Model
         'user_id', 
         'primm_question_id', 
         'jawaban_siswa', 
+        'kode_program',
         'skor', 
         'feedback'
     ];

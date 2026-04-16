@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState} from 'react';
 import AppLayout from '@/layouts/app-layout';
 import { usePage } from '@inertiajs/react';
 import { 
@@ -46,112 +46,136 @@ export default function ListTest() {
                 </div>
 
                 <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                    {tests.length > 0 ? (
-                        tests.map((test) => (
-                            <div 
-                                key={test.id} 
-                                className="group relative border-[#f4c892] border-2 rounded-2xl p-6 shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col justify-between"
-                            >
-                                <div>
-                                    <div className="w-12 h-12 bg-[#78B9B5] rounded-xl flex items-center justify-center mb-5 group-hover:bg-blue-600 transition-colors duration-300">
-                                        <ClipboardCheck className="w-6 h-6 text-white group-hover:text-white" />
-                                    </div>
-                                    <h3 className="text-xl font-bold text-gray-800 mb-3 group-hover:text-[#78B9B5] transition-colors">
+                    {tests.map((test) => (
+                        <div 
+                            key={test.id} 
+                            className="relative bg-white border border-[#78B9B5] rounded-[15px] p-6 shadow-sm hover:shadow-md transition-all duration-300 flex flex-col justify-between"
+                        >
+
+                            <div>
+                                <div className="w-12 h-12 bg-[#E6F4F1] rounded-xl flex items-center justify-center mb-4">
+                                    <ClipboardCheck className="w-6 h-6 text-[#78B9B5]" />
+                                </div>
+
+                                <div className="mb-4">
+                                    <h3 className="text-xl font-bold text-gray-900 mb-1">
                                         {test.title}
                                     </h3>
-                                    <p className="text-gray-500 text-sm leading-relaxed line-clamp-3 mb-6">
-                                        {test.description || "Tidak ada deskripsi tambahan untuk test ini."}
+                                    <p className="text-gray-600 text-sm leading-snug line-clamp-2">
+                                        {test.description || "Test awal untuk mengukur pengetahuan awal peserta sebelum memulai pembelajaran."}
                                     </p>
                                 </div>
 
+                                <div className="flex items-center gap-4 mb-5 text-gray-500 text-xs font-medium">
+                                    <div className="flex items-center gap-1.5">
+                                        <Clock className="w-4 h-4 text-gray-400" />
+                                        <span>30 menit</span>
+                                    </div>
+                                    <div className="flex items-center gap-1.5">
+                                        <div className="flex flex-col gap-0.5">
+                                            <div className="h-[1.5px] w-3 bg-gray-400"></div>
+                                            <div className="h-[1.5px] w-3 bg-gray-400"></div>
+                                            <div className="h-[1.5px] w-3 bg-gray-400"></div>
+                                        </div>
+                                        <span>20 soal</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="pt-4 border-t border-gray-100">
                                 <button 
                                     onClick={() => handleOpenModal(test)}
-                                    className="flex items-center justify-center gap-2 w-full py-3 bg-[#78B9B5] text-white rounded-xl font-bold hover:bg-blue-600 transition-all active:scale-95"
+                                    className="flex items-center justify-center gap-2 w-full py-3 bg-white border border-gray-200 text-gray-900 rounded-xl font-bold hover:border-[#78B9B5] hover:text-[#78B9B5] transition-all active:scale-[0.98] text-sm"
                                 >
-                                <Pencil className="w-4 h-4" />
-                                    Kerjakan
+                                    <ArrowRight className="w-4 h-4" />
+                                    Mulai Kerjakan
                                 </button>
                             </div>
-                        ))
-                    ) : (
-                        <div className="col-span-full flex flex-col items-center justify-center py-20 bg-white border-2 border-dashed border-gray-200 rounded-3xl">
-                            <Info className="w-12 h-12 text-gray-300 mb-4" />
-                            <p className="text-gray-500 font-medium">Belum ada test tersedia untuk saat ini.</p>
                         </div>
-                    )}
+                    ))}
                 </div>
 
                 {showModal && selectedTest && (
-                    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-                        <div 
-                            className="absolute inset-0 bg-gray-900/60 backdrop-blur-md transition-opacity"
-                            onClick={handleCloseModal}
-                        ></div>
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+        {/* Overlay dengan blur yang lebih halus */}
+        <div 
+            className="absolute inset-0 bg-gray-900/40 backdrop-blur-sm transition-opacity"
+            onClick={handleCloseModal}
+        ></div>
 
-                        <div className="relative bg-white w-full max-w-lg rounded-3xl shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-300">
-                            <div className="bg-indigo-600 p-6 text-white flex justify-between items-center">
-                                <div className="flex items-center gap-3">
-                                    <div className="p-2 bg-white/20 rounded-lg">
-                                        <BookOpen className="w-5 h-5 text-white" />
-                                    </div>
-                                    <h2 className="text-xl font-bold">Petunjuk Test</h2>
-                                </div>
-                                <button onClick={handleCloseModal} className="hover:rotate-90 transition-transform duration-300">
-                                    <X className="w-6 h-6" />
-                                </button>
+        <div className="relative bg-white w-full max-w-lg rounded-[32px] shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-300">
+            <div className="bg-[#3BB0A7] p-6 text-white flex justify-between items-center">
+                <div className="flex items-center gap-3">
+                    <div className="p-2 bg-white/20 rounded-xl">
+                        <ClipboardCheck className="w-6 h-6 text-white" />
+                    </div>
+                    <h2 className="text-m font-bold tracking-tight">Petunjuk Test</h2>
+                </div>
+                <button 
+                    onClick={handleCloseModal} 
+                    className="w-10 h-10 border border-white/30 rounded-xl flex items-center justify-center hover:bg-white/10 transition-colors"
+                >
+                    <X className="w-6 h-6 text-white" />
+                </button>
+            </div>
+
+            <div className="p-8">
+                <div className="mb-6">
+                    <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#3BB0A7]">Judul Test</span>
+                    <h3 className="text-xl font-bold text-gray-900 mt-1">{selectedTest.title}</h3>
+                </div>
+
+                <div className="space-y-6">
+                    <div className="flex items-start gap-4 p-5 bg-[#FFF9ED] rounded-2xl border-l-4 border-[#D99E1B]">
+                        <AlertCircle className="w-5 h-5 text-[#D99E1B] shrink-0 mt-0.5" />
+                        <p className="text-sm text-[#856404] font-semibold leading-relaxed">
+                            Penting: <span className="font-normal">Pastikan koneksi internet Anda stabil. Test akan dibuka di tab baru. Jangan menutup halaman utama sebelum selesai.</span>
+                        </p>
+                    </div>
+                    
+                    <div className="grid grid-cols-2 gap-4">
+                        <div className="p-5 bg-[#F9F9F7] rounded-2xl border border-gray-100">
+                            <div className="flex items-center gap-2 text-[#3BB0A7] text-[10px] font-black tracking-widest mb-2 uppercase">
+                                <Clock className="w-4 h-4" /> Soal
                             </div>
-
-                            <div className="p-8">
-                                <div className="mb-6">
-                                    <span className="text-xs font-bold uppercase tracking-widest text-indigo-600">Judul Test</span>
-                                    <h3 className="text-2xl font-black text-gray-900 leading-tight">{selectedTest.title}</h3>
-                                </div>
-
-                                <div className="space-y-4 mb-8">
-                                    <div className="flex items-start gap-4 p-4 bg-amber-50 rounded-2xl border border-amber-100">
-                                        <AlertCircle className="w-6 h-6 text-amber-600 shrink-0" />
-                                        <p className="text-sm text-amber-800 leading-relaxed">
-                                            <strong>Penting:</strong> Pastikan koneksi internet Anda stabil. Test akan dibuka di tab baru. Jangan menutup halaman utama sebelum selesai.
-                                        </p>
-                                    </div>
-                                    
-                                    <div className="grid grid-cols-2 gap-4">
-                                        <div className="p-4 bg-gray-50 rounded-2xl border border-gray-100">
-                                            <div className="flex items-center gap-2 text-gray-500 text-xs font-bold mb-1">
-                                                <Clock className="w-3 h-3" /> Soal
-                                            </div>
-                                            <div className="text-gray-900 font-bold">30 Soal</div>
-                                        </div>
-                                        <div className="p-4 bg-gray-50 rounded-2xl border border-gray-100">
-                                            <div className="flex items-center gap-2 text-gray-500 text-xs font-bold mb-1">
-                                                <Info className="w-3 h-3" /> TIPE
-                                            </div>
-                                            <div className="text-gray-900 font-bold">Pilihan Ganda</div>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div className="flex gap-3">
-                                    <button 
-                                        onClick={handleCloseModal}
-                                        className="flex-1 py-4 px-6 border border-gray-200 text-gray-600 font-bold rounded-2xl hover:bg-gray-50 transition-colors"
-                                    >
-                                        Batal
-                                    </button>
-                                    <a 
-                                        href={selectedTest.link}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        onClick={handleCloseModal}
-                                        className="flex-[2] py-4 px-6 bg-blue-600 text-white text-center font-bold rounded-2xl shadow-lg shadow-indigo-200 hover:bg-indigo-700 hover:-translate-y-1 transition-all active:scale-95"
-                                    >
-                                        Mulai
-                                    </a>
-                                </div>
+                            {/* Ukuran Soal diubah dari 4xl ke xl agar lebih proporsional */}
+                            <div className="text-base font-bold text-gray-800">30 Soal</div>
+                        </div>
+                        <div className="p-5 bg-[#F9F9F7] rounded-2xl border border-gray-100">
+                            <div className="flex items-center gap-2 text-[#3BB0A7] text-[10px] font-black tracking-widest mb-2 uppercase">
+                                <Info className="w-4 h-4" /> Tipe
                             </div>
+                            {/* Ukuran Tipe disesuaikan ke base/sm agar terlihat bersih */}
+                            <div className="text-base font-bold text-gray-800 leading-tight">Pilihan Ganda</div>
                         </div>
                     </div>
-                )}
+                </div>
+
+                {/* Footer Buttons */}
+                <div className="flex gap-4 mt-10">
+                    <button 
+                        onClick={handleCloseModal}
+                        className="flex-1 py-2 px-2 border border-gray-400 text-gray-900 font-bold rounded-2xl hover:bg-gray-50 transition-colors"
+                    >
+                        Batal
+                    </button>
+                    <a 
+                        href={selectedTest.link}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        onClick={handleCloseModal}
+                        className="flex-[2] py-2 px-2 bg-white border border-[#78B9B5] text-gray-900 text-center font-bold rounded-2xl hover:border-[#3BB0A7] hover:text-[#3BB0A7] transition-all flex items-center justify-center gap-3 active:scale-95 group"
+                    >
+                        <div className="w-8 h-8 rounded-full border border-gray-200 flex items-center justify-center group-hover:border-[#3BB0A7]">
+                            <ArrowRight className="w-4 h-4" />
+                        </div>
+                        Mulai Test
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+)}
             </div>
         </AppLayout>
     );

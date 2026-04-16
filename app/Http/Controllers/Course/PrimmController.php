@@ -16,7 +16,6 @@ class PrimmController extends Controller
     {
         $blocks = $request->input('blok');
 
-        // 1. Ambil semua ID blok yang dikirim dari form
         $incomingBlockIds = collect($blocks)->pluck('id')->filter()->toArray();
 
         \App\Models\Primm::where('course_id', $materiId)
@@ -25,26 +24,24 @@ class PrimmController extends Controller
             ->delete();
 
         foreach ($blocks as $index => $data) {
-            // Simpan atau update data PRIMM (Blok)
+
             $primm = \App\Models\Primm::updateOrCreate(
                 ['id' => (isset($data['id']) && $data['id'] < 1000000000000) ? $data['id'] : null],
                 [
                     'course_id' => $materiId,
                     'tahap'     => $tahap,
-                    'link_colab' => $data['link_colab'] ?? null,
+                    'kode_program' => $data['kode_program'] ?? null,
                     'gambar'     => $request->hasFile("gambar_{$index}") 
                         ? $request->file("gambar_{$index}")->store("primm/{$tahap}", 'public') 
                         : ($data['existing_gambar'] ?? null),
                 ]
             );
 
-            // 3. Sinkronisasi Pertanyaan (Logika Anda sudah benar di sini)
             $incomingQuestionIds = collect($data['pertanyaan'] ?? [])
                 ->pluck('id')
                 ->filter()
                 ->toArray();
 
-            // Hapus pertanyaan yang tidak ada di form (untuk blok ini)
             $primm->questions()->whereNotIn('id', $incomingQuestionIds)->delete();
 
             if (isset($data['pertanyaan']) && is_array($data['pertanyaan'])) {
@@ -84,7 +81,7 @@ class PrimmController extends Controller
             $primmData[$tahap][] = [
                 'id' => $primm->id,
                 'gambar' => $primm->gambar ? '/storage/' . $primm->gambar : null,
-                'link_colab' => $primm->link_colab,
+                'kode_program' => $primm->kode_program,
                 'questions' => $primm->questions, 
             ];
         }

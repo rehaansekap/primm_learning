@@ -17,6 +17,8 @@ export default function DaftarMateriSiswa({ student, materials }: any) {
                             <thead className="bg-slate-200 border-b border-slate-300 text-center">
                                 <tr>
                                     <th className="p-4 text-[13px] font-bold text-slate-500 uppercase ">Judul Materi</th>
+                                    <th className="p-4 text-[13px] font-bold text-slate-500 uppercase ">Fase Selesai</th>
+                                    <th className="p-4 text-[13px] font-bold text-slate-500 uppercase ">Total Skor</th>
                                     <th className="p-4 text-[13px] font-bold text-slate-500 uppercase ">Aksi</th>
                                 </tr>
                             </thead>
@@ -28,11 +30,24 @@ export default function DaftarMateriSiswa({ student, materials }: any) {
                                                 {materi.title} 
                                             </span>
                                         </td>
+                                        <td className="p-4 text-center">
+                                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-indigo-50 text-indigo-700 border border-indigo-100">
+                                                {materi.fase_count ?? 0}  Fase
+                                            </span>
+                                        </td>
+
+                                        <td className="p-4">
+                                            <span className={`px-3 py-1 rounded-full text-sm font-bold ${
+                                                materi.total_score >= 75 ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'
+                                            }`}>
+                                                {materi.total_score ?? '0'} / 100
+                                            </span>
+                                        </td>
                                         
                                         <td className="p-4 text-center">
                                             <Link 
                                                 href={`/guru/nilai/detail/${student.id}/${materi.id}`}
-                                                className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg text-xs font-bold hover:bg-blue-600 transition-all"
+                                                className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg text-xs font-bold hover:bg-blue-700 transition-all"
                                             >
                                                 Buka & Beri Nilai
                                             </Link>

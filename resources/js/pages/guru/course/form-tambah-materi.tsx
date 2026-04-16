@@ -103,13 +103,13 @@ const FormTambahMateri: React.FC<Props> = ({ isOpen, onClose, categories }) => {
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 bg-gray-400  hover:bg-gray-100 rounded-lg font-medium"
+              className="px-3 py-2 bg-gray-400  hover:bg-gray-100 rounded-lg font-medium"
             >
               Batal
             </button>
             <button
               type="submit"
-              className="px-6 py-2 bg-blue-600 text-white rounded-lg font-bold hover:bg-blue-700 shadow-lg transition-all"
+              className="px-5 py-2 bg-blue-600 text-white rounded-lg font-bold hover:bg-blue-700 shadow-lg transition-all"
             >
               Simpan
             </button>

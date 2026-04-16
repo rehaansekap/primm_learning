@@ -1,73 +1,98 @@
 import React from 'react';
-import AppLayout from '@/layouts/app-layout';
 import { Head } from '@inertiajs/react';
-import { Users, Monitor, BookOpen } from 'lucide-react';
+import AppLayout from '@/layouts/app-layout';
+import { Users, Monitor, BookOpen, Activity, ChevronRight, GraduationCap, CheckCircle } from 'lucide-react';
 
 interface Props {
     auth: {
-        user: {
-            name: string;
-        };
+        user: { name: string; };
     };
     stats: {
         totalSiswa: number;
         totalAktivitas: number;
         totalMateri: number;
-        siswaSelesaiSemuaFase: number;
     };
 }
 
 export default function DashboardGuru({ auth, stats }: Props) {
     return (
-        <AppLayout breadcrumbs={[{ title: 'Dashboard Guru', href: 'guru/dashboard' }]}>
+        <AppLayout breadcrumbs={[{ title: 'Dashboard Guru', href: '/guru/dashboard' }]}>
             <Head title="Dashboard Guru" />
-            
-            <div className="p-10 bg-white min-h-screen">
-                
-                <div className="mb-10">
-                    <h1 className="text-2xl font-medium text-gray-800 tracking-tight">
-                        HALLO, Bapak/Ibu <span className="text-emerald-600 font-bold">{auth?.user?.name || 'Guru'}</span>
-                    </h1>
-                    <p className="text-xl text-gray-800 mt-2">
-                        Selamat mengajar di pelajaran pemrograman
-                    </p>
+
+            <div className="p-6 md:p-10 bg-[#F8FAFC] min-h-screen font-sans">
+                {/* Header Section */}
+                <div className="mb-10 flex flex-col md:flex-row md:items-end justify-between gap-4">
+                    <div>
+                        <div className="flex items-center gap-2 mb-1">
+                            <h1 className="text-3xl font-black text-slate-800">
+                                HALLO, Bapak/Ibu <span className="text-[#0F828C] uppercase">{auth?.user?.name || 'Guru'}</span>
+                            </h1>
+                        </div>
+                        <p className="text-slate-500 font-medium max-w-lg leading-relaxed">
+                            Selamat mengajar di pelajaran pemrograman. Pantau progres belajar siswa Anda hari ini.
+                        </p>
+                    </div>
                 </div>
 
-                <div className="flex flex-wrap gap-6">
-                    <div className="w-full md:w-64 bg-[#99CCEA] p-6 rounded-md shadow-md flex items-center justify-between transition-transform hover:scale-105">
-                        <div className="flex flex-col items-center">
-                            <Users size={48} className="text-[#334488]" strokeWidth={2.5} />
-                        </div>
-                        <div className="text-right">
-                            <span className="text-5xl font-normal text-white block leading-none">{stats?.totalSiswa || 0}</span>
-                            <span className="text-lg font-bold text-gray-900 mt-1 block">Siswa</span>
-                        </div>
-                    </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                    <StatCard 
+                        title="Total Siswa"
+                        value={stats.totalSiswa || 0}
+                        subtitle="Siswa dalam kelas"
+                        icon={<Users className="text-blue-600" />}
+                        iconBg="bg-blue-100"
+                        trendColor="text-blue-500"
+                    />
 
-                    <div className="w-full md:w-64 bg-[#F7CA89] p-6 rounded-md shadow-md flex items-center justify-between transition-transform hover:scale-105">
-                        <div className="flex flex-col items-center">
-                            <Monitor size={48} className="text-gray-700" strokeWidth={1.5} />
-                        </div>
-                        <div className="text-right">
-                            <span className="text-5xl font-normal text-white block leading-none">
-                                {stats.totalAktivitas || 0}
-                            </span>
-                            <span className="text-lg font-bold text-gray-900 mt-1 block">Aktivitas</span>
-                        </div>
-                    </div>
+                    <StatCard 
+                        title="Total Aktivitas"
+                        value={stats.totalAktivitas || 0}
+                        subtitle="Tugas & Praktikum"
+                        icon={<Monitor className="text-emerald-600" />}
+                        iconBg="bg-emerald-100"
+                        trendColor="text-emerald-500"
+                    />
 
-                    <div className="w-full md:w-64 bg-[#D9D9D9] p-6 rounded-md shadow-md flex items-center justify-between transition-transform hover:scale-105">
-                        <div className="flex flex-col items-center">
-                            <BookOpen size={48} className="text-[#8899CC]" strokeWidth={1.5} />
-                        </div>
-                        <div className="text-right">
-                            <span className="text-5xl font-normal text-white block leading-none">{stats?.totalMateri || 0}</span>
-                            <span className="text-lg font-bold text-gray-900 mt-1 block">Materi</span>
-                        </div>
-                    </div>
+                    <StatCard 
+                        title="Total Materi"
+                        value={stats.totalMateri || 0}
+                        subtitle="Course tersedia"
+                        icon={<BookOpen className="text-blue-600" />}
+                        iconBg="bg-blue-100"
+                        trendColor="text-blue-500"
+                    />
 
                 </div>
             </div>
         </AppLayout>
+    );
+}
+
+function StatCard({ title, value, subtitle, icon, iconBg, trendColor }: any) {
+    return (
+        <div className="bg-white p-6 rounded-[32px] shadow-sm border border-slate-100 transition-all duration-300 ease-out cursor-default group 
+            hover:-translate-y-2 hover:shadow-xl hover:shadow-slate-200/50 hover:border-white">
+            
+            <div className="flex justify-between items-start mb-4">
+                <div className={`${iconBg} p-3 rounded-2xl transition-transform duration-500 group-hover:scale-110 group-hover:rotate-3`}>
+                    {React.cloneElement(icon, { size: 24, strokeWidth: 2.5 })}
+                </div>
+                <div className={`p-1.5 rounded-lg bg-slate-50 ${trendColor} transition-colors group-hover:bg-white`}>
+                    <Activity size={14} strokeWidth={3} />
+                </div>
+            </div>
+
+            <div>
+                <p className="text-slate-500 text-xs font-bold uppercase tracking-wider mb-1 transition-colors group-hover:text-slate-400">
+                    {title}
+                </p>
+                <h3 className="text-3xl font-black text-slate-800 mb-1 group-hover:text-slate-900">
+                    {value}
+                </h3>
+                <p className="text-slate-400 text-[11px] font-semibold">
+                    {subtitle}
+                </p>
+            </div>
+        </div>
     );
 }

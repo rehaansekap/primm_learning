@@ -23,22 +23,49 @@ class GradingController extends Controller
             ->get()
             ->map(function ($user) use ($totalMateriTersedia) {
                 
-                $jawaban = StudentAnswer::where('user_id', $user->id)
-                    ->with('question.primm')
-                    ->get();
+                // 1. Ambil semua materi (Course) yang progresnya sudah dicatat untuk siswa ini
+                $coursesDone = Course::whereHas('courseProgress', function($q) use ($user) {
+                    $q->where('user_id', $user->id);
+                })->get();
 
-                $faseCount = $jawaban->map(fn($a) => $a->question->primm->tahap ?? null)
+                // 2. Hitung total skor per masing-masing materi
+                $materiScores = $coursesDone->map(function ($course) use ($user) {
+                    $skorPerMateri = \App\Models\StudentAnswer::where('user_id', $user->id)
+                        ->whereHas('question.primm', function($q) use ($course) {
+                            $q->where('course_id', $course->id);
+                        })
+                        ->sum('skor');
+
+                    return [
+                        'title' => $course->title,
+                        'total_score' => $skorPerMateri
+                    ];
+                });
+
+                // 3. Filter: Mengabaikan materi yang judulnya mengandung "Pengenalan"
+                $filteredMaterials = $materiScores->filter(function ($m) {
+                    return stripos($m['title'], 'Pengenalan') === false;
+                });
+
+                // 4. Hitung Rata-rata dari koleksi materi yang sudah difilter
+                $jumlahMateri = $filteredMaterials->count();
+                $rataRata = $jumlahMateri > 0 
+                    ? round($filteredMaterials->avg('total_score'), 1) 
+                    : 0;
+
+                // 5. Hitung Fase Selesai (semua fase unik yang dijawab siswa)
+                $faseCount = \App\Models\StudentAnswer::where('user_id', $user->id)
+                    ->with('question.primm')
+                    ->get()
+                    ->map(fn($a) => $a->question->primm->tahap ?? null)
                     ->filter()->unique()->count();
 
                 return [
                     'user_id' => $user->id,
                     'user_name' => $user->name,
-                    
                     'materi_selesai' => $user->course_progress_count . ' / ' . $totalMateriTersedia,
-                    
                     'total_fase' => $faseCount . ' / 5',
-                    
-                    'rata_rata_nilai' => round($jawaban->avg('skor'), 1) ?: 0
+                    'rata_rata_nilai' => $rataRata // Dikirim ke DaftarNilai.tsx
                 ];
             });
 
@@ -100,11 +127,33 @@ class GradingController extends Controller
 
         $courses = Course::whereHas('courseProgress', function($q) use ($userId) {
             $q->where('user_id', $userId);
-        })->get();
+        })->get()->map(function ($course) use ($userId) {
+
+            $jawabanMateri = StudentAnswer::where('user_id', $userId)
+                ->whereHas('question.primm', function($q) use ($course) {
+                    $q->where('course_id', $course->id);
+                })
+                ->with('question.primm')
+                ->get();
+
+            $totalSkor = $jawabanMateri->sum('skor');
+
+            $faseCount = $jawabanMateri->map(fn($a) => $a->question->primm->tahap ?? null)
+                ->filter()
+                ->unique()
+                ->count();
+
+            return [
+                'id' => $course->id,
+                'title' => $course->title,
+                'total_score' => $totalSkor,
+                'fase_count' => $faseCount . ' / 5', 
+            ];
+        });
 
         return Inertia::render('guru/nilai/daftarMateriSiswa', [
             'student' => $student,
-            'materials' => $courses 
+            'materials' => $courses,
         ]);
     }
 }

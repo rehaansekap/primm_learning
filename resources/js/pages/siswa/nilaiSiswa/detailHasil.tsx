@@ -1,101 +1,145 @@
 import React from 'react';
 import { Head, Link } from '@inertiajs/react';
 import AppLayout from '@/layouts/app-layout';
-import { ArrowLeft, MessageCircle, CheckCircle2, Trophy, Info } from "lucide-react";
+import { ArrowLeft, MessageCircle, Code2 } from "lucide-react";
+import CodeMirror from '@uiw/react-codemirror';
+import { python } from '@codemirror/lang-python';
+import { vscodeDark } from '@uiw/codemirror-theme-vscode';
 
 export default function DetailHasil({ reports, course_title }: any) {
     return (
         <AppLayout>
             <Head title={`Detail - ${course_title}`} />
             
-            <div className="p-6 bg-[#F8FAFC] min-h-screen font-sans">
-                <div className="max-w-4xl mx-auto">
-                    <div className="mb-8 flex items-start gap-4">
-                        <h1 className="w-fit text-left text-l font-black text-white uppercase tracking-tighter bg-[#0F828C] px-10 py-1  shadow-sm ">
+            <div className="p-4 md:p-8 bg-[#FDFBF7] min-h-screen font-sans">
+                <div className="max-w-5xl mx-auto">
+                    <div className="mb-8 flex flex-col gap-2">
+                        <div className="flex items-center gap-2">
+                            <div className="h-5 w-1 bg-[#10837E] rounded-full"></div>
+                            <span className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">
+                                Laporan Aktivitas PRIMM
+                            </span>
+                        </div>
+                        <h1 className="text-2xl font-black text-slate-800 uppercase tracking-tight">
                             {course_title}
                         </h1>
                     </div>
 
-                    <div className="space-y-12">
-                        {reports.map((item: any, index: number) => (
-                            <div key={index} className="bg-white border border-slate-200 rounded-[35px] shadow-sm overflow-hidden transition-all">
+                    <div className="space-y-10">
+                        {reports.map((item: any, index: number) => {
+                            const tahap = item.question?.primm?.tahap || "Predict";
+                            const soalCode = item.question?.primm?.kode_program;
+                            const isCodingStep = ['modify', 'make'].includes(tahap.toLowerCase());
+                            const jawabanSiswaKode = item.kode_program; 
 
-                                <div className="px-8 py-5 border-b border-slate-100 flex justify-between items-center bg-white">
-                                    <div className="flex items-center gap-3">
-                                        <span className="w-10 h-10 rounded-full bg-blue-600 text-white flex items-center justify-center font-black text-sm shadow-lg shadow-blue-100">
-                                            {index + 1}
-                                        </span>
-                                        <h2 className="font-black uppercase text-slate-800 tracking-tight">
-                                            Tahap <span className="text-blue-600">{item.question?.primm?.tahap}</span>
-                                        </h2>
-                                    </div>
-                                    <div className="flex flex-col items-center justify-center border-2 border-[#f4c892] px-5 py-2 rounded-2xl bg-white shadow-sm">
-                                        <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1">Skor</span>
-                                        <span className="text-2xl font-black text-slate-900">{item.skor ?? '0'}</span>
-                                    </div>
-                                </div>
-
-                                <div className="p-8 space-y-8">
-                                    {item.question?.primm?.gambar && (
-                                        <div className="bg-white p-6 border border-slate-100 shadow-sm flex justify-center mb-6">
-                                            <img 
-                                                src={`/storage/${item.question.primm.gambar}`} 
-                                                className="max-w-[180px] w-full h-auto max-h-[120px] object-contain mx-auto" 
-                                                alt="Visual Kode" 
-                                            />
+                            return (
+                                <div key={index} className="bg-white border border-slate-200 rounded-[20px] shadow-sm overflow-hidden">
+                                    {/* Top Bar: Tahap & Skor */}
+                                    <div className="px-6 py-4 border-b border-slate-100 flex justify-between items-center">
+                                        <div className="flex items-center gap-4">
+                                            <div className="w-10 h-10 rounded-full bg-[#10837E] text-white flex items-center justify-center font-bold text-lg">
+                                                {index + 1}
+                                            </div>
+                                            <div className="flex flex-col">
+                                                <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Tahap</span>
+                                                <span className="text-[#10837E] font-black text-l tracking-tight uppercase">{tahap}</span>
+                                            </div>
                                         </div>
-                                    )}
-
-                                    <div>
-                                        <div className="flex items-center gap-2 mb-2">
-                                            <Info size={14} className="text-blue-500" />
-                                            <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Pertanyaan:</h4>
+                                        <div className="bg-[#F8F9FA] border border-[#10837E] rounded-xl px-4 py-2 flex flex-col items-center min-w-[70px]">
+                                            <span className="text-[9px] font-bold text-slate-400 uppercase">SKOR</span>
+                                            <span className="text-xl font-black text-slate-800">{item.skor ?? '0'}</span>
                                         </div>
-                                        <p className="text-slate-800 font-bold text-justify leading-relaxed text-[15px] pl-1 whitespace-pre-line">
-                                            {item.question?.pertanyaan}
-                                        </p>
                                     </div>
 
-                                    <div>
-                                        <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-3">Jawaban Kamu:</h4>
-                                        <div className="w-full p-6 rounded-[10px] text-[14px] transition-all border-2 flex items-start bg-[#F0FDF4] border-[#BBF7D0] text-[#166534] shadow-sm">
+                                    <div className="flex flex-col lg:flex-row divide-y lg:divide-y-0 lg:divide-x divide-slate-100">
+                                        
+                                        <div className="w-full lg:w-1/2 p-6 bg-[#F8F9FA]">
+                                            <div className="flex items-center gap-2 mb-4">
+                                                <Code2 size={14} className="text-[#10837E]" />
+                                                <h4 className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">KODE PROGRAM (SOAL)</h4>
+                                            </div>
                                             
-                                            <div className="flex-1">
-                                                <pre className="bg-transparent w-full outline-none font-medium leading-relaxed whitespace-pre-wrap font-sans ">
-                                                    {item.jawaban_siswa || 'Tidak ada jawaban yang dikirimkan.'}
-                                                </pre>
+                                            <div className=" overflow-hidden shadow-md border border-slate-300">
+                                                <CodeMirror
+                                                    value={soalCode || "# Kode soal tidak tersedia"}
+                                                    theme={vscodeDark}
+                                                    extensions={[python()]}
+                                                    readOnly={true}
+                                                    height="400px" 
+                                                    style={{ fontSize: '14px' }}
+                                                    basicSetup={{ lineNumbers: true, foldGutter: true }}
+                                                />
                                             </div>
                                         </div>
-                                    </div>
 
-                                    <div className={`rounded-[25px] p-6 border ${item.feedback ? 'bg-blue-50 border-blue-100' : 'bg-slate-50 border-slate-100'}`}>
-                                        <div className="flex items-start gap-4">
-                                            <div className={`p-3 rounded-2xl shadow-sm ${item.feedback ? 'bg-blue-600 text-white' : 'bg-slate-300 text-slate-500'}`}>
-                                                <MessageCircle size={20} />
-                                            </div>
+                                        <div className="w-full lg:w-1/2 p-6 space-y-6">
                                             <div>
-                                                <h4 className={`text-[10px] font-black uppercase tracking-widest mb-1 ${item.feedback ? 'text-blue-600' : 'text-slate-500'}`}>
-                                                    Feedback Guru
-                                                </h4>
-                                                <p className={`text-sm leading-relaxed ${item.feedback ? 'text-slate-900 font-bold' : 'italic text-slate-400'}`}>
-                                                    {item.feedback ? `"${item.feedback}"` : "Belum ada feedback untuk jawaban ini."}
-                                                </p>
+                                                <div className="flex items-center gap-2 mb-3 text-slate-500">
+                                                    <MessageCircle size={14} />
+                                                    <h4 className="text-[11px] font-bold uppercase tracking-wider">PERTANYAAN</h4>
+                                                </div>
+                                                <div className="bg-[#FDFBF7] border-l-4 border-[#10837E] p-4 rounded-r-xl">
+                                                    <p className="text-slate-800 font-semibold leading-relaxed text-sm whitespace-pre-wrap text-justify">
+                                                        {item.question?.pertanyaan}
+                                                    </p>
+                                                </div>
+                                            </div>
+
+                                            <div>
+                                                <div className="flex items-center gap-2 mb-3 text-slate-500">
+                                                    <h4 className="text-[11px] font-bold uppercase tracking-wider">
+                                                        {isCodingStep ? 'KODE PROGRAM KAMU' : 'JAWABAN KAMU'}
+                                                    </h4>
+                                                </div>
+
+                                                {isCodingStep ? (
+                                                    <div className="overflow-hidden border border-slate-300 shadow-md">
+                                                        <CodeMirror
+                                                            value={jawabanSiswaKode || "# Kamu tidak mengirimkan kode."}
+                                                            theme={vscodeDark}
+                                                            extensions={[python()]}
+                                                            readOnly={true}
+                                                            height="400px" 
+                                                            style={{ fontSize: '14px' }}
+                                                        />
+                                                    </div>
+                                                ) : (
+                                                    <div className="bg-[#E9F7F3] border border-[#BEE3D8] p-4 rounded-xl min-h-[100px]">
+                                                        <p className="text-[#10837E] font-medium text-sm">
+                                                            {item.jawaban_siswa || 'Tidak ada jawaban.'}
+                                                        </p>
+                                                    </div>
+                                                )}
+                                            </div>
+
+                                            <div className="bg-[#F8F9FA] rounded-2xl p-4 border border-slate-100">
+                                                <div className="flex items-start gap-3">
+                                                    <div className="w-8 h-8 rounded-full bg-slate-200 flex items-center justify-center text-slate-500 shrink-0">
+                                                        <MessageCircle size={16} />
+                                                    </div>
+                                                    <div>
+                                                        <h4 className="text-[10px] font-bold text-[#10837E] uppercase mb-1">Feedback Guru</h4>
+                                                        <p className="text-sm text-slate-500 italic leading-snug">
+                                                            {item.feedback ? `"${item.feedback}"` : "Belum ada catatan dari guru."}
+                                                        </p>
+                                                    </div>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
                                 </div>
-                            </div>
-                        ))}
+                            );
+                        })}
+                    </div>
 
-                        <div className=" flex justify-between">
-                            <Link 
-                                href="/siswa/nilaiSiswa" 
-                                className="inline-flex items-center gap-3 px-2 py-3 bg-slate-500 border border-slate-200 text-white rounded-2xl hover:bg-slate-800 hover:text-white transition-all active:scale-95 group font-black uppercase text-xs tracking-widest"
-                            >
-                                <ArrowLeft size={18} className="group-hover:-translate-x-1 transition-transform" />
-                                Kembali ke Daftar Nilai
-                            </Link>
-                        </div>
+                    <div className="mt-10 pb-10">
+                        <Link 
+                            href="/siswa/nilaiSiswa" 
+                            className="inline-flex items-center gap-2 px-4 py-3 bg-slate-600 text-white rounded-xl hover:bg-black transition-all font-bold text-sm shadow-lg group"
+                        >
+                            <ArrowLeft size={18} className="group-hover:-translate-x-1 transition-transform" />
+                            KEMBALI KE DAFTAR NILAI
+                        </Link>
                     </div>
                 </div>
             </div>

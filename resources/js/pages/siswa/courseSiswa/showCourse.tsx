@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Head, Link, router } from '@inertiajs/react'; 
-import { BookOpen, ArrowRight, ArrowLeft, CheckCircle, Download, CheckCircle2 } from "lucide-react"; 
+import { ArrowLeft, CheckCircle, Download, CheckCircle2 } from "lucide-react"; 
 import AppLayout from '@/layouts/app-layout';
 
 export default function ShowCourse({ course }: { course: any }) {
@@ -14,7 +14,7 @@ export default function ShowCourse({ course }: { course: any }) {
         else if (url.includes('youtu.be/')) videoId = url.split('youtu.be/')[1]?.split('?')[0];
         
         return videoId 
-            ? `<iframe width="100%" height="450" src="https://www.youtube.com/embed/${videoId}" frameborder="0" allowfullscreen className="rounded-[30px]"></iframe>` 
+            ? `<iframe width="100%" height="100%" src="https://www.youtube.com/embed/${videoId}" frameborder="0" allowfullscreen></iframe>` 
             : url;
     };
 
@@ -32,71 +32,62 @@ export default function ShowCourse({ course }: { course: any }) {
     };
 
     return (
-        <AppLayout breadcrumbs={[{ title: course.title, href: '#' }]}>
+        <AppLayout breadcrumbs={[{ title: course.title, href: '#' }]} hideSidebar>
             <Head title={course.title} />
             
-            <div className="min-h-screen bg-[#F8FAFC] p-4 md:p-10 font-sans text-gray-800">
-                <div className="max-w-3xl mx-auto space-y-6">
-                    
-                    <div className="bg-white p-8 rounded-[35px] shadow-sm border border-gray-100">
-                        <h1 className="text-3xl text-blue-600 font-bold uppercase tracking-tighter">{course.title}</h1>
-                        <p className="text-gray-400 text-sm mt-2">{course.category?.name || 'Materi Umum'}</p>
-                    </div>
+            <div className="h-screen bg-[#F8FAFC] font-sans text-gray-800 flex flex-col overflow-hidden">
+                {/* Header */}
+                <div className="bg-white px-6 py-3 shadow-sm border-b border-gray-100 flex-shrink-0">
+                    <h1 className="text-lg text-blue-600 font-bold uppercase tracking-tighter">{course.title}</h1>
+                    <p className="text-gray-400 text-xs">{course.category?.name || 'Materi Umum'}</p>
+                </div>
 
-                    <div className="bg-blue-100 p-8 rounded-[40px] shadow-sm border border-gray-100">
-                        <h3 className="text-[10px] font-black uppercase tracking-widest text-blue-500 mb-4 flex items-center gap-2">
-                            <BookOpen size={14} /> Inti Materi
-                        </h3>
-                        <div 
-                            className="prose prose-slate max-w-none text-black leading-relaxed font-medium"
-                            dangerouslySetInnerHTML={{ __html: course.description }}
-                        />
-                    </div>
-
-                    <div className="bg-white p-4 rounded-[45px] shadow-sm border border-gray-100 overflow-hidden">
+                {/* Content Area */}
+                <div className="flex-1 min-h-0 overflow-auto p-6 flex items-center justify-center">
+                    <div className="w-full max-w-4xl">
                         {course.link ? (
                             <div 
-                                className="w-full aspect-video rounded-[35px] overflow-hidden bg-black shadow-inner"
+                                className="w-full h-[550px]"
                                 dangerouslySetInnerHTML={{ __html: convertYoutubeToEmbed(course.link) }} 
                             />
                         ) : course.file ? (
-                            <div className="w-full min-h-[500px] rounded-[35px] overflow-hidden bg-gray-50 flex items-center justify-center border border-gray-100">
+                            <div className="w-full flex items-center justify-center">
                                 {course.file.endsWith('.pdf') ? (
-                                    <iframe src={`/storage/${course.file}`} className="w-full h-[600px]" />
+                                    <iframe src={`/storage/${course.file}`} className="w-full h-[550px] rounded-lg border border-gray-200" />
                                 ) : (
-                                    <img src={`/storage/${course.file}`} className="max-w-full h-auto p-4" alt="Materi" />
+                                    <img src={`/storage/${course.file}`} className="w-full rounded-lg shadow-sm" alt="Materi" />
                                 )}
                             </div>
                         ) : (
-                            <div className="p-20 text-center text-gray-400 uppercase font-bold text-xs tracking-widest">
+                            <div className="text-gray-400 uppercase font-bold text-xs tracking-widest text-center">
                                 Tidak ada media untuk materi ini
                             </div>
                         )}
                     </div>
+                </div>
 
-                    <div className="flex flex-col md:flex-row items-center justify-end py-6 gap-4 border-t border-gray-100">
-                        <Link 
-                            href="/siswa/courseSiswa" 
-                            className="w-full md:w-auto px-6 py-3 text-black bg-gray-400 font-semibold rounded-xl text-xs uppercase tracking-widest transition-colors flex items-center justify-center gap-2"
-                        >
-                            <ArrowLeft size={18} /> Batal
-                        </Link>
+                {/* Footer Buttons */}
+                <div className="bg-white px-6 py-3 border-t border-gray-100 flex items-center justify-end gap-3 flex-shrink-0">
+                    <Link 
+                        href="/siswa/courseSiswa" 
+                        className="px-4 py-2 text-black bg-gray-400 font-semibold rounded-lg text-xs uppercase tracking-widest transition-colors flex items-center justify-center gap-2 hover:bg-gray-500"
+                    >
+                        <ArrowLeft size={16} /> Batal
+                    </Link>
 
-                        
-                        <button 
-                            onClick={handleComplete}
-                            className="w-full md:w-auto bg-emerald-600 text-white px-8 py-3 rounded-xl font-bold text-[12px] uppercase tracking-widest shadow-lg shadow-emerald-50 hover:bg-emerald-700 hover:-translate-y-0.5 active:scale-95 transition-all flex items-center justify-center gap-2"
-                        >
-                            Completed <CheckCircle size={18} />
-                        </button>
-                    </div>
+                    <button 
+                        onClick={handleComplete}
+                        className="bg-emerald-600 text-white px-6 py-2 rounded-lg font-bold text-xs uppercase tracking-widest shadow-lg shadow-emerald-50 hover:bg-emerald-700 transition-all flex items-center justify-center gap-2"
+                    >
+                        Completed <CheckCircle size={16} />
+                    </button>
                 </div>
             </div>
 
             {showSuccessModal && (
                 <div className="fixed inset-0 z-[999] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-300">
                     <div className="bg-white rounded-[40px] p-8 md:p-10 max-w-md w-full shadow-2xl text-center relative animate-in zoom-in duration-300">
-                        <div className="absolute top-0 left-0 w-full h-2 bg-[#0F828C] from-blue-500 to-emerald-500"></div>
+                        <div className="absolute top-0 left-0 w-full h-2 bg-[#0F828C]"></div>
 
                         <div className="mb-6 inline-flex items-center justify-center w-20 h-20 bg-emerald-50 text-emerald-500 rounded-full">
                             <CheckCircle2 size={48} strokeWidth={2.5} />
@@ -116,7 +107,6 @@ export default function ShowCourse({ course }: { course: any }) {
                                     target="_blank"
                                     rel="noopener noreferrer"
                                     className="flex items-center justify-center gap-3 bg-emerald-600 text-white px-9 py-3 rounded-[10px] font-black text-[11px] uppercase tracking-widest hover:bg-emerald-700 transition-all shadow-lg shadow-emerald-200 group w-fit" 
-                                    
                                 >
                                     <Download size={16} className="group-hover:animate-bounce" />
                                     <span>Unduh Materi (PDF)</span>
@@ -126,7 +116,6 @@ export default function ShowCourse({ course }: { course: any }) {
                             <button
                                 onClick={() => router.visit('/siswa/courseSiswa')}
                                 className="flex items-center justify-center gap-2 bg-blue-600 text-white px-4 py-3 rounded-[10px] font-black text-[11px] uppercase tracking-widest hover:bg-blue-700 transition-all shadow-lg shadow-blue-200 w-fit"
-                            
                             >
                                 <ArrowLeft size={16} />
                                 <span>Kembali ke Daftar Materi</span>

@@ -20,20 +20,12 @@ class DashboardController extends Controller
         $totalMateri = Course::count();
 
         $totalAktivitas = Primm::distinct('course_id')->count('course_id');
-        
-        $siswaSelesai = User::where('role', 'siswa')
-            ->whereHas('answers.question.primm', function ($query) {
-                $query->select('course_id')
-                    ->groupBy('course_id')
-                    ->havingRaw('COUNT(DISTINCT tahap) >= 5');
-            })->count();
 
         return Inertia::render('guru/dashboard', [
             'stats' => [
                 'totalSiswa'            => (int) $totalSiswa,
                 'totalAktivitas'        => (int) $totalAktivitas,
                 'totalMateri'           => (int) $totalMateri,
-                'siswaSelesaiSemuaFase' => (int) $siswaSelesai,
             ]
         ]);
     }
