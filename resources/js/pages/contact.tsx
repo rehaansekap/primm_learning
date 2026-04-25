@@ -60,11 +60,11 @@ const Contact: React.FC = () => {
                 <span className="text-gray-600 font-bold group-hover:text-gray-900 transition-colors">0822-9523-3362</span>
               </a>
 
-              <a href="https://instagram.com/sn.anii24_" target="_blank" rel="noopener noreferrer" className="flex items-center gap-5 group w-fit">
+              <a href="https://instagram.com/sn.enii24_" target="_blank" rel="noopener noreferrer" className="flex items-center gap-5 group w-fit">
                 <div className="w-12 h-12 flex items-center justify-center rounded-2xl bg-white shadow-sm border border-gray-100 text-pink-500 group-hover:bg-pink-500 group-hover:text-white transition-all duration-300">
                   <Instagram className="w-6 h-6" />
                 </div>
-                <span className="text-gray-600 font-bold group-hover:text-gray-900 transition-colors">sn.anii24_</span>
+                <span className="text-gray-600 font-bold group-hover:text-gray-900 transition-colors">sn.enii24_</span>
               </a>
               </div>
             </div>

@@ -22,7 +22,7 @@ const Petunjuk: React.FC = () => {
                       <p className="text-gray-600">Kerjakan materi dimulai dari materi awal.</p>
                   </div>
                   <div className="bg-white p-8 rounded-xl shadow-sm border-t-4 border-[#78B9B5]">
-                      <h3 className="text-xl font-bold mb-2">03. Nilai</h3>
+                      <h3 className="text-xl font-bold mb-2">04. Nilai dan Feedback</h3>
                       <p className="text-gray-600">Lihat Nilai dan Feedback dari guru.</p>
                   </div>
               </div>

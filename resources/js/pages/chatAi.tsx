@@ -5,10 +5,17 @@ import { X, BotMessageSquare, Send } from 'lucide-react';
 interface ChatAIProps {
     pertanyaanId: number;
 }
+interface PageProps {
+    flash: {
+        aiResponse?: string;
+        error?: string;
+    };
+    [key: string]: any; // Untuk props lainnya
+}
 
 const ChatAI: React.FC<ChatAIProps> = ({ pertanyaanId }) => {
+    const { props } = usePage<PageProps>();
     const [isOpen, setIsOpen] = useState(false);
-    const { props } = usePage<any>(); // Ambil seluruh props untuk reaktivitas lebih baik
     const scrollRef = useRef<HTMLDivElement>(null);
     
     const [messages, setMessages] = useState<{role: string, content: string}[]>([]);
@@ -18,7 +25,6 @@ const ChatAI: React.FC<ChatAIProps> = ({ pertanyaanId }) => {
         pertanyaan_id: pertanyaanId, 
     });
 
-    // 1. Auto-scroll ke pesan terbawah setiap ada pesan baru
     useEffect(() => {
         if (scrollRef.current) {
             scrollRef.current.scrollTo({
@@ -28,46 +34,59 @@ const ChatAI: React.FC<ChatAIProps> = ({ pertanyaanId }) => {
         }
     }, [messages, processing]);
 
-    // 2. Sinkronisasi ID Soal jika prop berubah (saat pindah soal)
-    useEffect(() => {
-        setData('pertanyaan_id', pertanyaanId);
+
+
+  useEffect(() => {
+        setMessages([]);        
+        setIsOpen(false);      
+        reset('question');       
+        setData('pertanyaan_id', pertanyaanId); 
     }, [pertanyaanId]);
 
-useEffect(() => {
-    const responseTerbaru = props.flash?.aiResponse;
-        if (responseTerbaru) {
-            setMessages(prev => {
-                const lastMsg = prev[prev.length - 1];
-                if (lastMsg?.role === 'bot' && lastMsg.content === responseTerbaru) {
-                    return prev;
-                }
-                return [...prev, { role: 'bot', content: responseTerbaru }];
-            });
-
-            props.flash.aiResponse = null;
-        }
-}, [props.flash?.aiResponse]);
 
     const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!data.question.trim() || processing) return;
+        e.preventDefault();
+        if (!data.question.trim() || processing) return;
 
-    // Tampilkan pesan user di chat
-    setMessages(prev => [...prev, { role: 'user', content: data.question }]);
-
-    post('/ask-gemini', {
-        preserveScroll: true, // Supaya halaman nggak lompat ke atas
-        preserveState: true,  // Supaya chat nggak ketutup/reset
+        // 1. Tambahkan pesan user ke UI
+        const userMessage = data.question;
+        setMessages(prev => [...prev, { role: 'user', content: userMessage }]);
         
-        // --- INI KUNCINYA ---
-        // 'only' akan memerintah server cuma kirim data 'flash'.
-        // Data PRIMM, soal, dll TIDAK akan dikirim ulang.
-        only: ['flash'], 
-        onSuccess: () => {
-            reset('question');
-        },
-    });
-};
+        // Simpan referensi ke data agar tidak hilang saat reset
+        post('/ask-gemini', {
+            preserveScroll: true,
+            preserveState: true,
+            onSuccess: (page) => {
+                // Gunakan pencarian data yang lebih aman dari flash session
+                const flash = (page.props as any).flash;
+                
+                if (flash?.aiResponse) {
+                    setMessages(prev => [...prev, { role: 'bot', content: flash.aiResponse }]);
+                } else if (flash?.error) {
+                    // Jika ada error spesifik dari backend (seperti limit API)
+                    setMessages(prev => [...prev, { 
+                        role: 'bot', 
+                        content: flash.error 
+                    }]);
+                } else {
+                    // Fallback jika tidak ada respon sama sekali
+                    setMessages(prev => [...prev, { 
+                        role: 'bot', 
+                        content: 'Maaf, Tutor AI sedang tidak merespons. Coba ulangi pertanyaannya ya.' 
+                    }]);
+                }
+                reset('question');
+            },
+            onError: (err) => {
+                console.error("Error post:", err);
+                setMessages(prev => [...prev, { 
+                    role: 'bot', 
+                    content: 'Terjadi gangguan koneksi ke server.' 
+                }]);
+            }
+        });
+    };
+
     return (
         <div className="fixed bottom-14 right-15 z-[100] flex flex-col items-end gap-3 font-sans">
             {isOpen && (
@@ -131,7 +150,6 @@ useEffect(() => {
                         )}
                     </div>
 
-                    {/* Input Form */}
                     <form onSubmit={handleSubmit} className="p-4 bg-white border-t border-gray-100">
                         <div className="flex gap-2 bg-gray-50 p-1.5 rounded-full border border-gray-200 focus-within:border-[#0F828C] transition-all">
                             <input 
@@ -155,10 +173,28 @@ useEffect(() => {
             )}
 
             {!isOpen && (
-                <button onClick={() => setIsOpen(true)} className="w-13 h-13 rounded-full flex items-center justify-center shadow-2xl transition-all bg-[#0F828C] hover:bg-[#0D6B74] relative group">
-                    <BotMessageSquare size={28} className="text-white group-hover:scale-110 transition-transform" />
-                    <span className="absolute top-0 right-0 w-3 h-3 bg-green-400 border-2 border-white rounded-full"></span>
-                </button>
+                <div className="relative flex flex-col items-center group">
+                    {/* Label di atas tombol */}
+                    <div className="mb-2 bg-white px-3 py-1.5 rounded-xl shadow-lg border border-gray-100 animate-bounce">
+                        <span className="text-[10px] font-bold text-[#0F828C] text-center leading-tight">
+    Bingung?<br />
+    TanyaBot!
+</span>
+                        {/* Segitiga kecil di bawah label */}
+                        <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-2 h-2 bg-white border-b border-r border-gray-100 rotate-45"></div>
+                    </div>
+
+                    {/* Tombol Utama */}
+                    <button 
+                        onClick={() => setIsOpen(true)} 
+                        className="w-13 h-13 rounded-full flex items-center justify-center shadow-2xl transition-all bg-[#0F828C] hover:bg-[#0D6B74] relative active:scale-95"
+                    >
+                        <BotMessageSquare size={28} className="text-white" />
+                        
+                        {/* Dot Hijau Online */}
+                        <span className="absolute top-0 right-0 w-3.5 h-3.5 bg-green-400 border-2 border-white rounded-full"></span>
+                    </button>
+                </div>
             )}
         </div>
     );

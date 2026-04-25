@@ -1,11 +1,10 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Head, router, Link } from '@inertiajs/react'; 
-import { ArrowRight, CheckCircle2, Code2, Play, ArrowLeft, BookOpen, ExternalLink, Search, X, Lightbulb } from "lucide-react";
+import { ArrowRight, CheckCircle2, Code2, Play, Volume2, VolumeX, BookOpen, ExternalLink, Search, X, Lightbulb } from "lucide-react";
 import CodeMirror from '@uiw/react-codemirror';
 import { python } from '@codemirror/lang-python';
 import { vscodeDark } from '@uiw/codemirror-theme-vscode';
 import ChatAI from '../../chatAi';
-import { usePage } from '@inertiajs/react';
 import { useVoice } from '@/hooks/useVoice';
 
 interface Question { 
@@ -42,6 +41,22 @@ export default function ShowPrimm({ course, primm, activeStepFromUrl, existingAn
     const [isRunning, setIsRunning] = useState<number | null>(null);
     const [isReviewMode, setIsReviewMode] = useState(false);
     const { speak } = useVoice();
+    const [isMuted, setIsMuted] = useState(false);
+    const isMutedRef = useRef(isMuted);
+    const [isJustSubmitted, setIsJustSubmitted] = useState(false);
+    const speechIdRef = useRef(0);
+
+    const stripHtml = (html: string) => {
+        if (!html) return "";
+
+        let cleanText = html.replace(/<\/?[^>]+(>|$)/g, "");
+
+        const decodedText = document.createElement("textarea");
+        decodedText.innerHTML = cleanText;
+        cleanText = decodedText.value;
+
+        return cleanText;
+    };
 
     const renderEmbedMedia = (url: string): string => {
         if (!url) return '';
@@ -68,6 +83,107 @@ export default function ShowPrimm({ course, primm, activeStepFromUrl, existingAn
     };
 
     const pastPredictAnswer = getPastPredictAnswer();
+
+    const { pause, resume } = useVoice();
+
+    const toggleMute = () => {
+    const synth = window.speechSynthesis;
+
+    if (isMuted) {
+        setIsMuted(false);
+        if (synth.speaking || synth.paused) {
+            synth.resume();
+        } else {
+            const teksPembahasan = act?.questions[activeQuestionIdx]?.pembahasan;
+            if (activeStep === 'investigate' && teksPembahasan) {
+                speak(teksPembahasan);
+            }
+        }
+    } else {
+        setIsMuted(true);
+        synth.pause();
+    }
+    };
+
+    useEffect(() => {
+
+    const firstQuestionInStep = activities[0]?.questions[0];
+    if (!firstQuestionInStep) return;
+
+    const savedData = (existingAnswers as any)?.[firstQuestionInStep.id];
+    const currentLocalAnswer = answers[firstQuestionInStep.id];
+    const hasAnswer = (savedData !== undefined && savedData !== null) || (currentLocalAnswer && currentLocalAnswer.trim() !== "");
+
+    if (!isReviewMode && !hasAnswer) {
+        const currentIndex = steps.indexOf(activeStep);
+        const prevStep = currentIndex > 0 ? steps[currentIndex - 1] : null;
+        
+        let pesan = "";
+        
+        if (activeStep === 'predict') {
+            pesan = "Kamu masuk pada halaman memprediksi program. Silakan amati kode yang ada dan jawab pertanyaan prediksi dengan jelas.";
+        } 
+        else if (activeStep === 'run') {
+            pesan = "Prediksi selesai! Sekarang mari kita buktikan dengan menjalankan kodenya dengan menekan tombol Run.";
+        }
+        else if (prevStep) {
+            pesan = `Kalian keren bisa menyelesaikan tahap ${prevStep}. Sekarang tantangan berikutnya tahap ${activeStep}. Untuk menjawabnya silakan ubah di editornya langsung. Semangat!`;
+        }
+
+        if (pesan) {
+            const timer = setTimeout(() => {
+                if (activeStep === steps[currentIndex]) {
+                    window.speechSynthesis.cancel(); 
+
+                    const pesanSuara = pesan.replace(/make/gi, "meyk");
+
+                    speak(pesanSuara); 
+                    
+                    if (isMuted) {
+                        setTimeout(() => window.speechSynthesis.pause(), 10);
+                    }
+                }
+            }, 400);
+
+            return () => clearTimeout(timer);
+        }
+    }
+
+    if (hasAnswer) {
+        window.speechSynthesis.cancel();
+    }
+
+}, [activeStep, isReviewMode]);
+
+    useEffect(() => {
+    const teksPembahasan = act?.questions[activeQuestionIdx]?.pembahasan;
+    const synth = window.speechSynthesis;
+
+    synth.cancel();
+
+    if (isReviewMode && activeStep === 'investigate' && teksPembahasan) {
+        if (isMuted) return; 
+
+        speechIdRef.current += 1;
+        const currentId = speechIdRef.current;
+
+        const timer = setTimeout(() => {
+            if (currentId === speechIdRef.current) {
+                console.log("Membaca teks:", teksPembahasan);
+                speak(teksPembahasan);
+            }
+        }, 400);
+
+        return () => {
+            clearTimeout(timer);
+            synth.cancel(); 
+        };
+    }
+
+    return () => {
+        synth.cancel();
+    };
+}, [activeQuestionIdx, isReviewMode, activeStep]);
 
     useEffect(() => {
         if (activeStepFromUrl) {
@@ -130,37 +246,6 @@ export default function ShowPrimm({ course, primm, activeStepFromUrl, existingAn
 
     }, [activeStep, currentActivityIdx, activities, existingAnswers]);
 
-    useEffect(() => {
-        if (activeStep === 'predict' && !isReviewMode) {
-            
-            const pesanSambutan = "Kamu masuk pada halaman memprediksi program. Silakan amati kode yang ada dan jawab pertanyaan prediksi dengan jelas.";
-            const timer = setTimeout(() => {
-                if (activeStep === 'predict') {
-                    window.speechSynthesis.cancel(); 
-                    speak(pesanSambutan);
-                }
-            }, 500); 
-            return () => {
-                clearTimeout(timer);
-            };
-        }
-    }, [activeStep]); 
-
-    useEffect(() => {
-        if (isReviewMode && activeStep === 'investigate' && act?.questions[activeQuestionIdx]) {
-            
-            const teksPembahasan = act.questions[activeQuestionIdx].pembahasan;
-
-            const timer = setTimeout(() => {
-                speak(`${teksPembahasan}`);
-            }, 500);
-
-            return () => {
-                clearTimeout(timer);
-                window.speechSynthesis.cancel(); 
-            };
-        }
-    }, [activeQuestionIdx, isReviewMode, activeStep]);
 
     useEffect(() => {
         async function initPy() {
@@ -178,11 +263,11 @@ export default function ShowPrimm({ course, primm, activeStepFromUrl, existingAn
         if (showSuccessModal) {
             window.speechSynthesis.cancel();
 
-            const pesanSukses = "Horeee! Pembelajaran telah selesai. Silakan unduh materi untuk belajar di rumah, lalu kembali ke halaman materi untuk melihat status pembelajaran ini menjadi selesai.";
+            const pesanSukses = "Horeee! Pembelajaran telah selesai. Silakan unduh materi untuk belajar di rumah, lalu pilih kembali ke menu untuk keluar dari halaman ini.";
 
             const timer = setTimeout(() => {
                 speak(pesanSukses);
-            }, 1000);
+            }, 300);
 
             return () => clearTimeout(timer);
         }
@@ -251,16 +336,12 @@ export default function ShowPrimm({ course, primm, activeStepFromUrl, existingAn
         });
     }; 
 
-        const handleSaveAndNext = () => {
+    const handleSaveAndNext = () => {
         if (!act) return;
         const currentQuestion = act.questions[activeQuestionIdx];
-        const isAnswered = !!(existingAnswers as any)?.[currentQuestion.id];
-        
-        const isLastBlockInStep = currentActivityIdx === activities.length - 1;
-        const isLastQuestionInBlock = activeQuestionIdx === act.questions.length - 1;
-        const isFinalQuestionOfStep = isLastBlockInStep && isLastQuestionInBlock;
+        const isAnsweredInServer = !!(existingAnswers as any)?.[currentQuestion.id];
 
-        if (!isAnswered) {
+        if (!isAnsweredInServer && !isJustSubmitted) {
             const isCodingStep = ['modify', 'make'].includes(activeStep);
             const currentAnswer = answers[currentQuestion.id];
 
@@ -277,16 +358,16 @@ export default function ShowPrimm({ course, primm, activeStepFromUrl, existingAn
             }, {
                 preserveScroll: true,
                 onSuccess: () => {
-                    if (!isLastQuestionInBlock) {
-                        setActiveQuestionIdx(prev => prev + 1);
-                    } else if (!isLastBlockInStep) {
-                        setActiveQuestionIdx(0);
-                        setCurrentActivityIdx(prev => prev + 1);
-                    }
+                    setIsJustSubmitted(true);
                 }
             });
-            return;
+            return; 
         }
+
+        setIsJustSubmitted(false); 
+
+        const isLastBlockInStep = currentActivityIdx === activities.length - 1;
+        const isLastQuestionInBlock = activeQuestionIdx === act.questions.length - 1;
 
         if (activeStep === 'predict') {
             if (!isLastQuestionInBlock) {
@@ -296,8 +377,8 @@ export default function ShowPrimm({ course, primm, activeStepFromUrl, existingAn
                 setCurrentActivityIdx(prev => prev + 1);
             } else {
                 window.speechSynthesis.cancel();
-                speak("Prediksi selesai! Sekarang mari kita buktikan dengan menjalankan kodenya. Silakan klik tombol RUN, lalu bandingkan hasilnya dengan prediksimu sebelumnya.");
-                router.visit(`/siswa/courseSiswa/showPrimm/${course.id}/run`);
+                router.visit(`/siswa/courseSiswa/showPrimm/${course.id}/run`, {
+                });
             }
         } 
         else if (activeStep === 'run') {
@@ -309,8 +390,8 @@ export default function ShowPrimm({ course, primm, activeStepFromUrl, existingAn
             } else {
                 const nextStep = steps[currentStep + 1];
                 window.speechSynthesis.cancel();
-                speak(`Keren.Tahap RUN selesai. Yuk, kita bedah logikanya di tahap ${nextStep.toLowerCase()}!`);
-                router.visit(`/siswa/courseSiswa/showPrimm/${course.id}/${nextStep}`);
+                router.visit(`/siswa/courseSiswa/showPrimm/${course.id}/${nextStep}`, {
+                });
             }
         }
         else {
@@ -323,10 +404,8 @@ export default function ShowPrimm({ course, primm, activeStepFromUrl, existingAn
                 } else {
                     setIsReviewMode(false);
                     const nextStep = steps[currentStep + 1];
-                    
                     if (nextStep) {
                         window.speechSynthesis.cancel();
-                        speak(`Kalian keren bisa menyelesaikan tahap ${activeStep.toLowerCase()}. Sekarang tantangan berikutnya tahap ${nextStep.toLowerCase()}. Untuk menjawabnya silahkan ubah di editor nya langsung. Jika sudah menjawab silahkan bandingkan dengan pembahasan aslinya. Semangat!!`);
                         router.visit(`/siswa/courseSiswa/showPrimm/${course.id}/${nextStep}`);
                     } else {
                         handleFinalComplete(); 
@@ -353,6 +432,13 @@ export default function ShowPrimm({ course, primm, activeStepFromUrl, existingAn
                 <div className="flex items-center gap-4">
                     <div className="bg-blue-600 text-white px-3 py-1 rounded-lg font-black text-xs uppercase shadow-sm">PRIMM</div>
                     <h1 className="font-bold text-gray-800 truncate">{course.title}</h1>
+
+                    <button 
+                        onClick={toggleMute}
+                        className={`p-2 rounded-xl transition-all ${isMuted ? 'bg-red-50 text-red-500' : 'bg-blue-50 text-blue-600'}`}
+                    >
+                        {isMuted ? <VolumeX size={18} /> : <Volume2 size={18} />}
+                    </button>
                 </div>
                 <div className="flex items-center gap-2 bg-gray-100 p-1 rounded-xl">
                     {steps.map((s) => (
@@ -419,7 +505,7 @@ export default function ShowPrimm({ course, primm, activeStepFromUrl, existingAn
                             )}
                         </section>
 
-                        <section className="w-1/2 flex flex-col gap-4 overflow-y-auto pr-2 pb-32 custom-scrollbar">
+                       <section className="w-1/2 flex flex-col gap-4 overflow-y-auto pr-2 pb-32 custom-scrollbar min-h-0 flex-1">
                             {['investigate', 'modify', 'make'].includes(activeStep) && (
                                 <button 
                                     onClick={() => setSubView('materi')}
@@ -439,7 +525,7 @@ export default function ShowPrimm({ course, primm, activeStepFromUrl, existingAn
 
                                     {(() => {
                                         const q = act.questions[activeQuestionIdx];
-                                        const isAnswered = !!(existingAnswers as any)?.[q.id];
+                                        const isAnswered = !!(existingAnswers as any)?.[q.id] || isJustSubmitted;
                                         const isCodingStep = ['modify', 'make'].includes(activeStep);
                                         const isAllInBlockAnswered = act.questions.every(question => 
                                             !!(existingAnswers as any)?.[question.id]
@@ -447,7 +533,6 @@ export default function ShowPrimm({ course, primm, activeStepFromUrl, existingAn
 
                                         return (
                                             <div key={q.id} className="bg-white rounded-[25px] border border-gray-200 shadow-sm overflow-hidden animate-in slide-in-from-right duration-500">
-                                                {/* Header Kartu Pertanyaan */}
                                                 <div className="bg-gray-50/50 p-6 border-b flex items-start gap-4">
                                                     <div className="w-10 h-10 rounded-2xl bg-blue-600 text-white flex items-center justify-center text-sm font-black shrink-0 shadow-lg shadow-blue-100">
                                                         {activeQuestionIdx + 1}
@@ -465,8 +550,8 @@ export default function ShowPrimm({ course, primm, activeStepFromUrl, existingAn
                                                         <span className="text-[10px] font-black text-emerald-600 uppercase tracking-widest block mb-1">
                                                             Jawaban Prediksi Anda Sebelumnya:
                                                         </span>
-                                                        <p className="text-sm italic text-gray-700 leading-relaxed">
-                                                            "{pastPredictAnswer}"
+                                                        <p className="text-sm text-gray-700 leading-relaxed whitespace-pre-wrap">
+                                                            {pastPredictAnswer}
                                                         </p>
                                                     </div>
                                                 )}
@@ -474,35 +559,54 @@ export default function ShowPrimm({ course, primm, activeStepFromUrl, existingAn
                                                 <div className="p-6 space-y-4">
                                                     {!isCodingStep && (
                                                         <div className="flex flex-col gap-2">
-                                                            <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest block">
+                                                            <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">
                                                                 Jawaban:
                                                             </span>
-                                                            <textarea 
-                                                                value={answers[q.id] || ''} 
-                                                                onChange={(e) => setAnswers(prev => ({ ...prev, [q.id]: e.target.value }))} 
-                                                                readOnly={isAnswered} 
-                                                                rows={4} 
-                                                                className={`w-full p-5 rounded-2xl border-2 transition-all outline-none whitespace-pre-wrap text-sm 
-                                                                    ${isAnswered 
-                                                                        ? 'bg-emerald-50/50 border-emerald-100 text-emerald-900' 
-                                                                        : 'bg-white border-gray-300 focus:border-blue-500 shadow-inner'}`} 
-                                                                placeholder="Tuliskan jawabanmu di sini..." 
-                                                            />
+
+                                                            {isAnswered ? (
+                                                                <div className="w-full p-5 rounded-2xl border-2 bg-emerald-50/50 border-emerald-100 text-black text-sm whitespace-pre-wrap animate-in fade-in duration-300">
+                                                                    {(() => {
+                                                                        const data = (existingAnswers as any)?.[q.id] || answers[q.id];
+                                                                        if (typeof data === 'object' && data !== null) {
+                                                                            return data.jawaban_siswa || '-';
+                                                                        }
+                                                                        return data || '-';
+                                                                    })()}
+                                                                </div>
+                                                            ) : (
+                                                                <textarea
+                                                                    className="w-full p-5 rounded-2xl border-2 border-gray-200 text-sm focus:border-emerald-400 outline-none min-h-[120px] resize-y"
+                                                                    value={answers[q.id] || ''}
+                                                                    onChange={(e) => setAnswers(prev => ({ ...prev, [q.id]: e.target.value }))}
+                                                                    placeholder="Tuliskan jawabanmu di sini..."
+                                                                />
+                                                            )}
                                                         </div>
                                                     )}
 
                                                     {isReviewMode && !['predict', 'run'].includes(activeStep) && (
-                                                        <div className="mt-4 p-6 bg-blue-50 border-l-4 border-blue-500 rounded-r-2xl animate-in slide-in-from-left duration-500">
-                                                            <div className="flex items-center gap-2 mb-2">
-                                                                <Lightbulb size={16} className="text-blue-600" />
-                                                                <span className="text-[12px] font-black text-blue-600 uppercase">
-                                                                     Pembahasan 
-                                                                </span>
-                                                            </div>
-                                                            <p className="text-sm text-gray-700 leading-relaxed text-justify whitespace-pre-wrap">
-                                                                {q.pembahasan}
-                                                            </p>
+                                                        <div 
+                                                        className="mt-4 p-6 bg-blue-50 border-l-4 border-blue-500 rounded-r-2xl w-full h-auto"
+                                                        > 
+                                                        <div className="flex items-center gap-2 mb-3">
+                                                            <Lightbulb size={16} className="text-blue-600" />
+                                                            <span className="text-[12px] font-black text-blue-600 uppercase">
+                                                                Pembahasan 
+                                                            </span>
                                                         </div>
+
+                                                        <div 
+                                                        className="text-sm text-gray-700 leading-relaxed text-justify 
+                                                                whitespace-normal overflow-wrap-anywhere break-normal
+                                                                [&_ul]:list-disc [&_ul]:ml-6 [&_ul]:mb-4
+                                                                [&_ol]:list-decimal [&_ol]:ml-6 [&_ol]:mb-4
+                                                                [&_li]:mb-1
+                                                                [&_p]:mb-4 [&_p:last-child]:mb-0 whitespace-pre-wrap"
+                                                        dangerouslySetInnerHTML={{ 
+                                                            __html: q.pembahasan.replace(/&nbsp;/g, ' ') 
+                                                        }} 
+                                                        />
+                                                    </div>
                                                     )}
                                                 </div>
                                             </div>
@@ -594,8 +698,9 @@ export default function ShowPrimm({ course, primm, activeStepFromUrl, existingAn
                             const isAnswered = !!(existingAnswers as any)?.[act?.questions[activeQuestionIdx]?.id];
                             const isFinalSoal = currentActivityIdx === activities.length - 1 && activeQuestionIdx === act.questions.length - 1;
                             const isLastStep = currentStep === steps.length - 1; // Cek apakah ini tahap 'make'
-
-                            if (!isAnswered) return "Simpan Jawaban";
+                            const isAnsweredInServer = !!(existingAnswers as any)?.[act?.questions[activeQuestionIdx]?.id];
+                            
+                            if (!isAnsweredInServer && !isJustSubmitted) return "Simpan Jawaban";
 
                             if (['predict', 'run'].includes(activeStep) && isFinalSoal) {
                                 const nextTarget = activeStep === 'predict' ? 'RUN' : 'INVESTIGATE';
@@ -619,10 +724,16 @@ export default function ShowPrimm({ course, primm, activeStepFromUrl, existingAn
                 </div>
             </footer>
 
-            {act?.questions?.length > 0 && ['investigate', 'modify', 'make'].includes(activeStep.toLowerCase()) && (
-                <div className="fixed bottom-14 right-15 z-[100] transition-all duration-500 ease-out animate-in fade-in slide-in-from-bottom-10">
-                    <ChatAI pertanyaanId={act.questions[0].id} />
-                </div>
+            {subView === 'aktivitas' && !isReviewMode && ( 
+                act?.questions?.length > 0 && 
+                ['investigate', 'modify', 'make'].includes(activeStep.toLowerCase()) && (
+                    <div className="fixed bottom-14 right-15 z-[100] transition-all duration-500 ease-out animate-in slide-in-from-bottom-10">
+                        <ChatAI 
+                            key={act.questions[0].id} 
+                            pertanyaanId={act.questions[0].id} 
+                        />
+                    </div>
+                )
             )}
 
             {showSuccessModal && (
@@ -635,7 +746,7 @@ export default function ShowPrimm({ course, primm, activeStepFromUrl, existingAn
                             {course.link_drive && (
                                 <a href={course.link_drive} target="_blank" className="flex items-center justify-center gap-2 bg-emerald-600 text-white py-4 rounded-2xl font-bold text-xs uppercase tracking-widest hover:bg-emerald-700 transition-all"><ExternalLink size={18} /> Unduh Materi Lengkap</a>
                             )}
-                            <button onClick={() => router.visit('/siswa/courseSiswa')} className="bg-blue-600 text-white py-4 rounded-2xl font-bold text-xs uppercase tracking-widest hover:bg-blue-700 transition-all">Kembali ke halaman materi</button>
+                            <button onClick={() => router.visit('/siswa/courseSiswa')} className="bg-gray-500 text-white py-4 rounded-2xl font-bold text-xs uppercase tracking-widest hover:bg-slate-800 transition-all">Kembali ke Menu</button>
                         </div>
                     </div>
                 </div>

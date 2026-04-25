@@ -75,7 +75,6 @@ export default function DetailHasil({ reports, course_title }: any) {
                                         <div className="w-full lg:w-1/2 p-6 space-y-6">
                                             <div>
                                                 <div className="flex items-center gap-2 mb-3 text-slate-500">
-                                                    <MessageCircle size={14} />
                                                     <h4 className="text-[11px] font-bold uppercase tracking-wider">PERTANYAAN</h4>
                                                 </div>
                                                 <div className="bg-[#FDFBF7] border-l-4 border-[#10837E] p-4 rounded-r-xl">
@@ -88,7 +87,7 @@ export default function DetailHasil({ reports, course_title }: any) {
                                             <div>
                                                 <div className="flex items-center gap-2 mb-3 text-slate-500">
                                                     <h4 className="text-[11px] font-bold uppercase tracking-wider">
-                                                        {isCodingStep ? 'KODE PROGRAM KAMU' : 'JAWABAN KAMU'}
+                                                        {isCodingStep ? 'KODE PROGRAM ' : 'JAWABAN '}
                                                     </h4>
                                                 </div>
 
@@ -105,7 +104,7 @@ export default function DetailHasil({ reports, course_title }: any) {
                                                     </div>
                                                 ) : (
                                                     <div className="bg-[#E9F7F3] border border-[#BEE3D8] p-4 rounded-xl min-h-[100px]">
-                                                        <p className="text-[#10837E] font-medium text-sm">
+                                                        <p className="text-black font-medium text-sm text-justify whitespace-pre-wrap">
                                                             {item.jawaban_siswa || 'Tidak ada jawaban.'}
                                                         </p>
                                                     </div>

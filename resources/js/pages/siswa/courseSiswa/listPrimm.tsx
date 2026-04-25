@@ -112,28 +112,34 @@ export default function ListPrimm({ course, progress, isAllFinished }: any) {
                ) : (
                     /* MAIN CONTENT - OPTIMAL 3 KOLOM */
                     <div className="animate-in fade-in duration-700 max-w-6xl mx-auto">
-                        
-                        {/* Header Ringkas */}
-                        <div className="mb-8 flex flex-col md:flex-row md:items-end justify-between gap-4">
+
+                        <div className="mb-8 flex flex-col gap-2"> 
                             <div className="text-left">
-                                <h1 className="text-2xl font-black text-gray-900 tracking-tight">Aktivitas yang akan dipelajari </h1>
+                                <h1 className="text-2xl font-black text-gray-900 tracking-tight">
+                                    Aktivitas yang akan dipelajari
+                                </h1>
                                 <p className="text-gray-500 text-m font-medium">
                                     Pada Materi <span className="text-blue-600 font-bold">{course.title}</span>
                                 </p>
                             </div>
-                            
-                            <Link href="/siswa/courseSiswa" className="flex items-center gap-1.5 text-gray-400 hover:text-black transition-colors font-bold text-[10px] tracking-widest uppercase">
+  
+                            <Link 
+                                href="/siswa/courseSiswa" 
+                                className="flex items-center gap-1.5 text-gray-600 hover:text-black transition-colors font-bold text-[10px] tracking-widest uppercase pt-4"
+                            >
                                 <ArrowLeft size={14} /> Kembali
                             </Link>
                         </div>
 
-                        {/* Grid Card Layout - 3 Kolom Responsif */}
                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
                             {steps.map((step, index) => {
                                 const isFirstStep = index === 0;
                                 const previousStep = steps[index - 1];
-                                const isUnlocked = isFirstStep || progress[previousStep];
-                                const isCompleted = progress[step];
+
+                                const isCompleted = progress[step] === true || progress[step] === 1;
+                                
+                                const isUnlocked = isFirstStep || (progress[previousStep] === true || progress[previousStep] === 1);
+
                                 const IconComponent = stepIcons[index];
 
                                 return (
@@ -147,13 +153,13 @@ export default function ListPrimm({ course, progress, isAllFinished }: any) {
                                     >
                                         <div>
                                             <div className="flex justify-between items-start mb-4">
-                                                {/* Icon Lebih Kecil */}
                                                 <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${
                                                     isCompleted ? 'bg-emerald-50 text-emerald-500' : 'bg-blue-50 text-blue-500'
                                                 }`}>
                                                     <IconComponent size={20} strokeWidth={2.5} />
                                                 </div>
 
+                                                {/* Badge SELESAI muncul jika isCompleted true */}
                                                 {isCompleted && (
                                                     <span className="bg-emerald-100 text-emerald-600 px-3 py-1 rounded-full text-[8px] font-black tracking-widest uppercase">
                                                         SELESAI
@@ -165,25 +171,24 @@ export default function ListPrimm({ course, progress, isAllFinished }: any) {
                                                 {step}
                                             </h3>
                                             
-                                            {/* Deskripsi Lebih Ringkas */}
                                             <p className="text-gray-500 text-[12px] leading-relaxed font-medium line-clamp-2">
                                                 {deskripsiTahap[index]}
                                             </p>
                                         </div>
 
-                                        {/* Bagian Bawah */}
                                         <div className="mt-4 pt-4 border-t border-gray-50 flex justify-end items-center">
                                             {isUnlocked ? (
                                                 <Link 
                                                     href={`/siswa/courseSiswa/showPrimm/${course.id}/${step}`}
                                                     className="text-blue-600 font-black text-[11px] hover:text-blue-800 transition-all flex items-center gap-1 group"
                                                 >
-                                                    {isCompleted ? 'LIHAT LAGI' : 'BELAJAR'}
+                                                    {/* Jika sudah selesai, teks berubah menjadi LIHAT LAGI */}
+                                                    {isCompleted ? 'LIHAT LAGI' : 'KERJAKAN'}
                                                     <ChevronRight className="group-hover:translate-x-0.5 transition-transform" size={14} />
                                                 </Link>
                                             ) : (
                                                 <div className="flex items-center gap-1 text-gray-300 font-bold text-[10px] uppercase tracking-widest">
-                                                    <Lock size={12} />
+                                                    <Lock size={12} /> Terkunci
                                                 </div>
                                             )}
                                         </div>

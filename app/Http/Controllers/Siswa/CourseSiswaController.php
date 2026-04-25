@@ -136,32 +136,44 @@ class CourseSiswaController extends Controller
 }
 
     public function listPrimm($id)
-    {
-        $course = Course::findOrFail($id);
-        $userId = Auth::id();
-        $steps = ['predict', 'run', 'investigate', 'modify', 'make'];
-        $progress = [];
+{
+    $course = Course::findOrFail($id);
+    $userId = Auth::id();
+    $steps = ['predict', 'run', 'investigate', 'modify', 'make'];
+    $progress = [];
 
-        foreach ($steps as $step) {
-            $isCompleted = \App\Models\StudentAnswer::where('user_id', $userId)
-                ->whereHas('question.primm', function($query) use ($id, $step) {
-                    $query->where('course_id', $id)->where('tahap', $step);
-                })->exists();
-                
-            $progress[$step] = $isCompleted;
-        }
+    foreach ($steps as $step) {
+        // 1. Hitung total soal yang tersedia di tahap ini
+        // Asumsi: Anda punya relasi 'questions' di model Primm
+        $totalQuestionsCount = \App\Models\PrimmQuestion::whereHas('primm', function($query) use ($id, $step) {
+                $query->where('course_id', $id)->where('tahap', $step);
+            })->count();
 
-        $isAllFinished = DB::table('course_progress')
+        // 2. Hitung jumlah soal unik yang sudah dijawab siswa di tahap ini
+        $answeredCount = \App\Models\StudentAnswer::where('user_id', $userId)
+            ->whereHas('question.primm', function($query) use ($id, $step) {
+                $query->where('course_id', $id)->where('tahap', $step);
+            })
+            ->distinct('primm_question_id')
+            ->count('primm_question_id');
+
+        // 3. Tahap dianggap SELESAI jika jumlah jawaban >= jumlah soal
+        // Dan pastikan jumlah soal tidak nol (untuk menghindari false positive)
+        $progress[$step] = ($totalQuestionsCount > 0) && ($answeredCount >= $totalQuestionsCount);
+    }
+
+    // Cek apakah seluruh course sudah selesai secara keseluruhan
+    $isAllFinished = DB::table('course_progress')
         ->where('user_id', $userId)
         ->where('course_id', $id)
         ->exists();
 
-        return Inertia::render('siswa/courseSiswa/listPrimm', [
-            'course' => $course,
-            'progress' => $progress, 
-            'isAllFinished' => $isAllFinished
-        ]);
-    }
+    return Inertia::render('siswa/courseSiswa/listPrimm', [
+        'course' => $course,
+        'progress' => $progress, 
+        'isAllFinished' => $isAllFinished
+    ]);
+}
 
     public function complete($id)
     {

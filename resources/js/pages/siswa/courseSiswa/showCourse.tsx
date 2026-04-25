@@ -36,15 +36,14 @@ export default function ShowCourse({ course }: { course: any }) {
             <Head title={course.title} />
             
             <div className="h-screen bg-[#F8FAFC] font-sans text-gray-800 flex flex-col overflow-hidden">
-                {/* Header */}
                 <div className="bg-white px-6 py-3 shadow-sm border-b border-gray-100 flex-shrink-0">
                     <h1 className="text-lg text-blue-600 font-bold uppercase tracking-tighter">{course.title}</h1>
                     <p className="text-gray-400 text-xs">{course.category?.name || 'Materi Umum'}</p>
                 </div>
 
-                {/* Content Area */}
-                <div className="flex-1 min-h-0 overflow-auto p-6 flex items-center justify-center">
-                    <div className="w-full max-w-4xl">
+            <div className="w-full h-screen flex flex-col bg-slate-100 rounded-2xl overflow-hidden border border-slate-200">
+                <div className="flex-1 min-h-0 overflow-y-auto">
+                    <div className="max-w-3xl mx-auto  flex flex-col py-10 px-4 md:px-0">
                         {course.link ? (
                             <div 
                                 className="w-full h-[550px]"
@@ -66,7 +65,6 @@ export default function ShowCourse({ course }: { course: any }) {
                     </div>
                 </div>
 
-                {/* Footer Buttons */}
                 <div className="bg-white px-6 py-3 border-t border-gray-100 flex items-center justify-end gap-3 flex-shrink-0">
                     <Link 
                         href="/siswa/courseSiswa" 
@@ -82,6 +80,7 @@ export default function ShowCourse({ course }: { course: any }) {
                         Completed <CheckCircle size={16} />
                     </button>
                 </div>
+            </div>
             </div>
 
             {showSuccessModal && (

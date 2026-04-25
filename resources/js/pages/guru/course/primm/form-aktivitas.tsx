@@ -6,6 +6,7 @@ import AppLayout from '@/layouts/app-layout';
 import CodeMirror from '@uiw/react-codemirror';
 import { python } from '@codemirror/lang-python';
 import { vscodeDark } from '@uiw/codemirror-theme-vscode';
+import RichTextEditor from '@/components/richTextEditor';
 
 interface Soal {
     id: number;
@@ -284,13 +285,15 @@ export default function FormAktivitas({ materi, tahap, primm }: { materi: any; t
                                             placeholder="Tulis pertanyaan..."
                                         />
                                         <div className="relative">
-                                            <textarea 
+                                            <RichTextEditor 
                                                 value={soal.pembahasan || ""}
-                                                onChange={(e) => updatePembahasanSoal(bIndex, sIndex, e.target.value)}
-                                                className="w-full p-4 bg-blue-50 border border-emerald-100 rounded-2xl text-xs text-black focus:ring-4 focus:ring-emerald-500/10 outline-none"
+                                                onChange={(content) => updatePembahasanSoal(bIndex, sIndex, content)}
                                                 placeholder="Kunci jawaban..."
                                             />
-                                            <div className="absolute -top-2 left-4 px-2 bg-white border border-emerald-100 rounded-full text-[8px] font-black text-blue-600 uppercase">Kunci</div>
+
+                                            <div className="absolute -top-2 left-4 px-2 bg-white border border-emerald-100 rounded-full text-[8px] font-black text-blue-600 uppercase z-10">
+                                                Kunci
+                                            </div>
                                         </div>
                                     </div>
                                 ))}
