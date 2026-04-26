@@ -37,15 +37,22 @@ class DashboardController extends Controller
         $totalMateriBerpenilaian = \App\Models\Course::has('primms')->count();
 
         $totalSkorSiswa = \App\Models\StudentAnswer::where('user_id', $user->id)->sum('skor');
-
-        $hasilAkhir = $totalMateriBerpenilaian > 0 
-            ? (int) round($totalSkorSiswa / $totalMateriBerpenilaian) 
-            : 0;
-
-        $totalMateri = \App\Models\Course::count();
-        $progresSiswa = \App\Models\Course::whereHas('primms.questions.answers', function ($q) use ($user) {
+        
+        $materiYangSudahDikerjakan = \App\Models\Course::whereHas('primms.questions.answers', function ($q) use ($user) {
             $q->where('user_id', $user->id);
         })->count();
+
+        $materiYangSudahDinilai = \App\Models\Course::whereHas('primms.questions.answers', function ($q) use ($user) {
+            $q->where('user_id', $user->id)
+            ->where('skor', '>', 0); 
+        })->count();
+
+        $hasilAkhir = $materiYangSudahDinilai > 0 
+        ? (int) round($totalSkorSiswa / $materiYangSudahDinilai) 
+        : 0;
+
+        $totalMateri = \App\Models\Course::count();
+        $progresSiswa = $materiYangSudahDikerjakan;
 
         return Inertia::render('siswa/dashboard', [
             'stats' => [

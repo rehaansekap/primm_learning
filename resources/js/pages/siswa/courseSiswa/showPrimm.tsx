@@ -126,8 +126,11 @@ export default function ShowPrimm({ course, primm, activeStepFromUrl, existingAn
         else if (activeStep === 'run') {
             pesan = "Prediksi selesai! Sekarang mari kita buktikan dengan menjalankan kodenya dengan menekan tombol Run.";
         }
+        else if (activeStep === 'investigate') {
+            pesan = `Sekarang mari kita bedah logikanya pada tahap ${activeStep}.`;
+        }
         else if (prevStep) {
-            pesan = `Kalian keren bisa menyelesaikan tahap ${prevStep}. Sekarang tantangan berikutnya tahap ${activeStep}. Untuk menjawabnya silakan ubah di editornya langsung. Semangat!`;
+            pesan = `Kalian keren bisa menyelesaikan tahap ${prevStep}. Sekarang tantangan berikutnya tahap ${activeStep}. Untuk menjawabnya silakan ubah di editornya langsung dan jika sudah menjawab silahkan bandingkan dengan jawabannya. Semangat!`;
         }
 
         if (pesan) {
@@ -143,7 +146,7 @@ export default function ShowPrimm({ course, primm, activeStepFromUrl, existingAn
                         setTimeout(() => window.speechSynthesis.pause(), 10);
                     }
                 }
-            }, 400);
+            }, 300);
 
             return () => clearTimeout(timer);
         }
@@ -267,7 +270,7 @@ export default function ShowPrimm({ course, primm, activeStepFromUrl, existingAn
 
             const timer = setTimeout(() => {
                 speak(pesanSukses);
-            }, 300);
+            }, 200);
 
             return () => clearTimeout(timer);
         }

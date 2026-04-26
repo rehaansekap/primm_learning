@@ -12,9 +12,7 @@ export default function HasilBelajar({ results }: any) {
         (acc: number, curr: any) => acc + (parseFloat(curr.total_skor_materi) || 0), 0
     );
 
-    const hasilAkhirKeseluruhan = materiBerpenilaian.length > 0 
-        ? Math.round(totalSkorKumulatif / materiBerpenilaian.length)
-        : 0;
+    const hasilAkhirKeseluruhan = Math.round(totalSkorKumulatif);
 
     return (
         <AppLayout>

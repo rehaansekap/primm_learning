@@ -36,7 +36,12 @@ export default function ListPrimm({ course, progress, isAllFinished }: any) {
                 window.speechSynthesis.cancel();
             };
         }
-    }, [showInstructions]);
+    }, [showInstructions, course.title]);
+
+    const handleCloseInstructions = () => {
+        setShowInstructions(false);
+        window.speechSynthesis.cancel(); 
+    };
 
     return (
         <AppLayout breadcrumbs={[{ title: course.title, href: '#' }]}>
@@ -100,7 +105,7 @@ export default function ListPrimm({ course, progress, isAllFinished }: any) {
 
                                 <div className="mt-8 flex justify-end">
                                     <button
-                                        onClick={() => setShowInstructions(false)}
+                                        onClick={handleCloseInstructions}
                                         className="group px-6 py-3 bg-[#0F828C] hover:bg-[#0d6d74] text-white rounded-2xl font-black text-sm transition-all shadow-lg flex items-center gap-2 active:scale-95"
                                     >
                                         MULAI SEKARANG <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />

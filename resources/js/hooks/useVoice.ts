@@ -1,5 +1,16 @@
 export const useVoice = () => {
 
+    const angkaKeTeks = (n: number): string => {
+        if (n === 0) return "nol";
+        const unit = ["", "satu", "dua", "tiga", "empat", "lima", "enam", "tujuh", "delapan", "sembilan", "sepuluh", "sebelas"];
+        if (n < 12) return unit[n];
+        if (n < 20) return angkaKeTeks(n - 10) + " belas";
+        if (n < 100) return angkaKeTeks(Math.floor(n / 10)) + " puluh " + (n % 10 !== 0 ? " " + angkaKeTeks(n % 10) : "");
+        if (n < 200) return "seratus " + (n - 100 !== 0 ? angkaKeTeks(n - 100) : "");
+        if (n < 1000) return angkaKeTeks(Math.floor(n / 100)) + " ratus " + (n % 100 !== 0 ? " " + angkaKeTeks(n % 100) : "");
+        return n.toString(); 
+    };
+
     const cleanHtml = (html: string) => {
     if (typeof document === 'undefined') return "";
     
@@ -38,8 +49,12 @@ export const useVoice = () => {
         const processedText = cleanHtml(message);
         if (!processedText) return;
 
+        const textToSpeak = processedText.replace(/\d+/g, (match) => {
+            return angkaKeTeks(parseInt(match));
+        });
+
         setTimeout(() => {
-        const utterance = new SpeechSynthesisUtterance(processedText);
+        const utterance = new SpeechSynthesisUtterance(textToSpeak);
         utterance.lang = 'id-ID';
         
         // Sedikit lambat agar ejaan n, a, m, a jelas

@@ -43,7 +43,7 @@ export default function DashboardSiswa({ auth, stats }: Props) {
                         <div className="p-6 pt-0 space-y-4">
                             <ul className="space-y-3 text-sm text-slate-600 font-medium">
                                 <li className="flex gap-3"><span>1.</span> <span>Silahkan <b>Test</b> terlebih dahulu jika belum.</span></li>
-                                <li className="flex gap-3"><span>2.</span> <span>Lanjutkan ke <b>Edit Profil</b> untuk perbarui data.</span></li>
+                                <li className="flex gap-3"><span>2.</span> <span>Lanjutkan ke <b>Edit Profil</b> jika ingin memperbarui data.</span></li>
                                 <li className="flex gap-3"><span>3.</span> <span>Pilih menu <b>Course</b> untuk mulai belajar.</span></li>
                                 <li className="flex gap-3 border-t border-dashed pt-3 font-bold text-slate-800"><span>4.</span> <span>Cek <b>Grade</b> untuk melihat hasil.</span></li>
                                 <li className="flex gap-3 text-rose-600"><span>5.</span> <span>Wajib <b>Logout</b> jika sudah selesai.</span></li>
@@ -92,9 +92,8 @@ export default function DashboardSiswa({ auth, stats }: Props) {
                         trendColor="text-emerald-500"
                     />
 
-                    {/* Card 3: Nilai Akhir */}
                     <StatCard 
-                        title="Nilai Akhir"
+                        title="Rata-rata"
                         value={stats.hasilAkhir || 0}
                         subtitle={stats.hasilAkhir > 0 ? "Target tercapai" : "Belum tersedia"}
                         icon={<Trophy className="text-amber-600" />}

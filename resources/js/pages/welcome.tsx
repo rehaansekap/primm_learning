@@ -5,7 +5,7 @@ import About from './about';
 import Guide from './petunjuk';
 import Contact from './contact';
 
-import { ArrowRight, MessageCircle, Send, Instagram,  } from 'lucide-react';
+import { ArrowDown, MessageCircle, Send, Instagram,  } from 'lucide-react';
 
 export default function Welcome(){
     return (
@@ -39,12 +39,12 @@ export default function Welcome(){
                         <div className=" animate-bounce justify-center mt-10 flex items-center gap-x-6 ">
                             <a 
                                 href="#guide"
-                                className="w-32 px-4 py-1.5 rounded-md bg-[#78B9B5] font-medium text-white 
+                                className="w-32 px-5 py-1.5 rounded-md bg-[#78B9B5] font-medium text-white 
                                             hover:bg-gray-300 hover:text-black flex items-center justify-between 
                                             transition-colors duration-300"
                                 >
                                 <span>Jelajahi</span>
-                                <ArrowRight size={20} />
+                                <ArrowDown size={20} />
                             </a>
                         </div>
                     </div>

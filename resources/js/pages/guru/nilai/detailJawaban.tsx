@@ -3,6 +3,9 @@ import { useForm, Head, Link } from '@inertiajs/react';
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
 import { Save, MessageSquare, ChevronLeft, User, Code2, Terminal, Info, CheckCircle2 } from "lucide-react";
+import CodeMirror from '@uiw/react-codemirror';
+import { python } from '@codemirror/lang-python';
+import { vscodeDark } from '@uiw/codemirror-theme-vscode';
 
 interface GradingForm {
     scores: Record<number, string | number>;
@@ -89,9 +92,21 @@ export default function DetailJawaban({ student, answers, currentMateri }: any) 
                                                         <span className="text-[10px] text-slate-400 font-mono tracking-widest">soal.py</span>
                                                     </div>
                                                     <div className="bg-[#1e1e1e] p-4 overflow-x-auto max-h-[200px]">
-                                                        <pre className="font-mono text-[12px] leading-relaxed text-blue-300">
-                                                            <code>{ans.question.primm.kode_program}</code>
-                                                        </pre>
+                                                        <CodeMirror
+                                                            value={ans.question.primm.kode_program}
+                                                            theme={vscodeDark}
+                                                            extensions={[python()]}
+                                                            readOnly={true}
+                                                            height="auto"
+                                                            minHeight="50px"
+                                                            maxWidth="100%"
+                                                            style={{ fontSize: '12px' }}
+                                                            basicSetup={{
+                                                                lineNumbers: true,
+                                                                foldGutter: false,
+                                                                highlightActiveLine: false,
+                                                            }}
+                                                        />
                                                     </div>
                                                 </div>
                                             )}
@@ -103,19 +118,43 @@ export default function DetailJawaban({ student, answers, currentMateri }: any) 
                                             </div>
 
                                             {isCodingStage ? (
-                                                <div className="rounded-xl overflow-hidden border border-emerald-500/20 shadow-sm">
-                                                    <div className="bg-slate-900 px-3 py-1 flex items-center justify-between border-b border-white/5">
-                                                        <span className="text-[10px] text-emerald-500 font-mono font-bold tracking-widest">student_code.py</span>
+                                                /* Wadah utama harus memiliki overflow-hidden agar sudut rounded terlihat */
+                                                <div className="rounded-xl overflow-hidden border border-slate-800 shadow-lg mb-4">
+                                                    
+                                                    {/* Header ala VS Code Tab */}
+                                                    <div className="bg-[#1e1e1e] px-3 py-1.5 flex items-center justify-between border-b border-white/5">
+                                                        <div className="flex items-center gap-2">
+                                                            <Code2 size={12} className="text-blue-400" />
+                                                            <span className="text-[10px] text-slate-400 font-mono tracking-widest uppercase">
+                                                                student_code.py
+                                                            </span>
+                                                        </div>
                                                         <CheckCircle2 size={12} className="text-emerald-500" />
                                                     </div>
-                                                    <div className="bg-[#1e1e1e] p-4 overflow-x-auto">
-                                                        <pre className="font-mono text-[12px] leading-relaxed text-emerald-400 whitespace-pre-wrap">
-                                                            <code>{ans.kode_program || "# Kosong"}</code>
-                                                        </pre>
+                                                    
+                                                    {/* CodeMirror menggantikan seluruh tag <pre><code> */}
+                                                    <div className="text-left"> {/* Memastikan teks rata kiri */}
+                                                        <CodeMirror
+                                                            value={ans.kode_program || "# Siswa belum mengirimkan kode"}
+                                                            theme={vscodeDark}
+                                                            extensions={[python()]}
+                                                            readOnly={true}
+                                                            editable={false}
+                                                            height="auto"
+                                                            minHeight="100px"
+                                                            className="overflow-hidden"
+                                                            basicSetup={{
+                                                                lineNumbers: true,
+                                                                foldGutter: false,
+                                                                highlightActiveLine: false,
+                                                                syntaxHighlighting: true, // Pastikan ini true
+                                                            }}
+                                                        />
                                                     </div>
                                                 </div>
                                             ) : (
-                                                <div className="p-4 bg-emerald-50/50 rounded-xl border border-emerald-100 text-[#166534]">
+                                                /* Jawaban teks tetap seperti biasa */
+                                                <div className="p-4 bg-emerald-50/50 rounded-xl border border-emerald-100 text-black">
                                                     <p className="text-sm font-bold leading-relaxed whitespace-pre-wrap">
                                                         {ans.jawaban_siswa && ans.jawaban_siswa !== 'session_coding' ? ans.jawaban_siswa : '(Tidak ada jawaban)'}
                                                     </p>
