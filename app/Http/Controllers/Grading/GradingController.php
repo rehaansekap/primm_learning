@@ -44,16 +44,17 @@ class GradingController extends Controller
 
                 // 3. Filter: Mengabaikan materi yang judulnya mengandung "Pengenalan"
                 $filteredMaterials = $materiScores->filter(function ($m) {
-                    return stripos($m['title'], 'Pengenalan') === false;
+                    $bukanPengenalan = stripos($m['title'], 'Pengenalan') === false;
+                    $sudahDinilai = $m['total_score'] > 0; 
+
+                    return $bukanPengenalan && $sudahDinilai;
                 });
 
-                // 4. Hitung Rata-rata dari koleksi materi yang sudah difilter
-                $jumlahMateri = $filteredMaterials->count();
-                $rataRata = $jumlahMateri > 0 
+                $jumlahMateriDinilai = $filteredMaterials->count();
+                $rataRata = $jumlahMateriDinilai > 0 
                     ? round($filteredMaterials->avg('total_score'), 1) 
                     : 0;
 
-                // 5. Hitung Fase Selesai (semua fase unik yang dijawab siswa)
                 $faseCount = \App\Models\StudentAnswer::where('user_id', $user->id)
                     ->with('question.primm')
                     ->get()
@@ -65,7 +66,8 @@ class GradingController extends Controller
                     'user_name' => $user->name,
                     'materi_selesai' => $user->course_progress_count . ' / ' . $totalMateriTersedia,
                     'total_fase' => $faseCount . ' / 5',
-                    'rata_rata_nilai' => $rataRata // Dikirim ke DaftarNilai.tsx
+                    'materi_dinilai' => $jumlahMateriDinilai,
+                    'rata_rata_nilai' => $rataRata 
                 ];
             });
 

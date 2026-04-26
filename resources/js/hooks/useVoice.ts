@@ -2,6 +2,7 @@ export const useVoice = () => {
 
     const angkaKeTeks = (n: number): string => {
         if (n === 0) return "nol";
+        if (n < 0) return "negatif " + angkaKeTeks(Math.abs(n));
         const unit = ["", "satu", "dua", "tiga", "empat", "lima", "enam", "tujuh", "delapan", "sembilan", "sepuluh", "sebelas"];
         if (n < 12) return unit[n];
         if (n < 20) return angkaKeTeks(n - 10) + " belas";
@@ -49,15 +50,14 @@ export const useVoice = () => {
         const processedText = cleanHtml(message);
         if (!processedText) return;
 
-        const textToSpeak = processedText.replace(/\d+/g, (match) => {
-            return angkaKeTeks(parseInt(match));
-        });
+        const textToSpeak = processedText.replace(/-?\d+/g, (match) => {
+        return angkaKeTeks(parseInt(match));
+    });
 
         setTimeout(() => {
         const utterance = new SpeechSynthesisUtterance(textToSpeak);
         utterance.lang = 'id-ID';
-        
-        // Sedikit lambat agar ejaan n, a, m, a jelas
+
         utterance.rate = 1.0; 
 
         // Event listener untuk memantau jika suara berhenti mendadak
