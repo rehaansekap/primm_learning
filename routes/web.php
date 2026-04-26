@@ -20,8 +20,8 @@ use App\Http\Controllers\GeminiController;
 
 Route::get('/', function () {
     if (Auth::check()) {
-        return Auth::user()->role === 'guru' 
-            ? redirect('/guru/dashboard') 
+        return Auth::user()->role === 'guru'
+            ? redirect('/guru/dashboard')
             : redirect('/siswa/dashboard');
     }
 
@@ -42,7 +42,7 @@ Route::get('/siswa/dashboard', [DashboardController::class, 'statistikSiswa'])
 
 Route::get('/dashboard', function () {
     /** @var \App\Models\User $user */
-    $user = Auth::user(); 
+    $user = Auth::user();
 
     if (!$user) {
         return redirect()->route('login');
@@ -61,12 +61,12 @@ Route::post('/register', [RegisterController::class, 'store'])
     ->name('register');
 
 Route::middleware('auth')->group(function () {
-    Route::get('/edit-profil', [GuruProfilController::class, 'edit'])->name('profile.edit');
-    Route::put('/update-profil', [GuruProfilController::class, 'update'])->name('profile.update');
+    Route::get('/edit-profil', [GuruProfilController::class, 'edit'])->name('guru.profile.edit');
+    Route::put('/update-profil', [GuruProfilController::class, 'update'])->name('guru.profile.update');
 });
 
 Route::get('/tentang', function () {
-    return Inertia::render('about'); 
+    return Inertia::render('about');
 });
 
 Route::get('/kontak', function () {
@@ -150,14 +150,14 @@ Route::middleware(['auth'])->group(function () {
 
 
 // Route::get('/guru/course/primm/predict/pembahasan', function () {
-//     return Inertia::render('guru/course/primm/PredictPembahasan'); 
+//     return Inertia::render('guru/course/primm/PredictPembahasan');
 // });
 
 
 //Siswa
 // Route::get('siswa/testSiswa/listTest', function () {
-    
-//     $tests = \App\Models\Test::all(); 
+
+//     $tests = \App\Models\Test::all();
 
 //     return inertia('siswa/testSiswa/listTest', [
 //         'tests' => $tests
@@ -165,8 +165,8 @@ Route::middleware(['auth'])->group(function () {
 // })->name('siswa.test.index');
 
 Route::get('siswa/testSiswa', function () {
-    
-    $tests = \App\Models\Test::all(); 
+
+    $tests = \App\Models\Test::all();
 
     return inertia('siswa/testSiswa/listTest', [
         'tests' => $tests
@@ -185,7 +185,7 @@ Route::middleware(['auth'])->group(function () {
         ->name('siswa.courseSiswa.listPrimm');
 
     Route::get('/siswa/courseSiswa/showPrimm/{id}/{step}', [CourseSiswaController::class, 'showPrimm'])
-    ->name('siswa.courseSiswa.showPrimm');
+        ->name('siswa.courseSiswa.showPrimm');
 
     Route::post('/siswa/courseSiswa/saveProgress', [CourseSiswaController::class, 'saveProgress'])
         ->name('siswa.course.saveProgress');
@@ -193,4 +193,4 @@ Route::middleware(['auth'])->group(function () {
 
 Route::post('/ask-gemini', [GeminiController::class, 'ask'])->name('gemini.ask');
 
-require __DIR__.'/settings.php';
+require __DIR__ . '/settings.php';
